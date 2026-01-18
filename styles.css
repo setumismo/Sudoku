@@ -101,8 +101,7 @@ body {
 }
 
 .logo-img {
-    height: 80px;
-    /* Increased from 40px */
+    height: min(80px, 10vw);
     width: auto;
     object-fit: contain;
     mix-blend-mode: multiply;
@@ -368,19 +367,24 @@ body {
     }
 
     /* CSS "Crop" by limiting container height */
+    /* Flexible container */
     .logo-container {
-        height: 80px;
-        /* Force smaller container */
-        overflow: hidden;
+        height: auto;
+        max-height: 80px;
+        /* Limit max height */
+        overflow: visible;
+        /* Allow seeing the whole thing */
+        display: flex;
         align-items: center;
-        /* Center to crop top/bottom */
     }
 
     .logo-img {
-        height: 150px;
-        /* Keep large image size */
-        mix-blend-mode: multiply;
-        /* Transparency for white bg */
+        height: auto;
+        max-height: 80px;
+        /* Match container */
+        max-width: 60vw;
+        /* Ensure it fits with buttons */
+        object-fit: contain;
     }
 
     /* Dark Mode Logo Handling */
