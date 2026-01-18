@@ -355,8 +355,8 @@ body {
     }
 
     .logo-img {
-        height: 50px;
-        /* Reduced from 80px for mobile */
+        height: 100px;
+        /* Increased to 100px as requested */
     }
 
     .app-container {
