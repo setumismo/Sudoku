@@ -105,6 +105,14 @@ body {
     /* Increased from 40px */
     width: auto;
     object-fit: contain;
+    mix-blend-mode: multiply;
+    /* Transparency for white bg */
+}
+
+/* Dark Mode Logo Handling - Global */
+[data-theme="dark"] .logo-img {
+    filter: invert(1) hue-rotate(180deg);
+    mix-blend-mode: screen;
 }
 
 .header-controls {
@@ -359,8 +367,28 @@ body {
         /* ZERO spacing */
     }
 
+    /* CSS "Crop" by limiting container height */
+    .logo-container {
+        height: 80px;
+        /* Force smaller container */
+        overflow: hidden;
+        align-items: center;
+        /* Center to crop top/bottom */
+    }
+
     .logo-img {
         height: 150px;
+        /* Keep large image size */
+        mix-blend-mode: multiply;
+        /* Transparency for white bg */
+    }
+
+    /* Dark Mode Logo Handling */
+    [data-theme="dark"] .logo-img {
+        filter: invert(1) hue-rotate(180deg);
+        /* Invert colors + fix hue if needed */
+        mix-blend-mode: screen;
+        /* Transparency for inverted black bg */
     }
 
 
