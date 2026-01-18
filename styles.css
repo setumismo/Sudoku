@@ -382,8 +382,8 @@ body {
         height: auto;
         max-height: 80px;
         /* Match container */
-        max-width: 53vw;
-        /* Reduced from 60vw (~12% smaller) */
+        max-width: 45vw;
+        /* Reduced further to 45vw (~15% more) */
         object-fit: contain;
     }
 
