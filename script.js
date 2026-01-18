@@ -643,17 +643,34 @@ class SudokuGame {
             if (!db) throw new Error("Database not initialized");
 
             // Fetch Global Scores from Firebase (Compat)
+            console.log(`Fetching scores for difficulty: ${difficulty}`);
             const querySnapshot = await db.collection("scores")
                 .where("difficulty", "==", difficulty)
-                .orderBy("seconds", "asc")
-                .limit(20)
+                .limit(100) // Fetch top 100 candidates to sort client-side
                 .get();
 
-            const list = [];
+            console.log(`Found ${querySnapshot.size} documents.`);
+
+            let list = [];
             querySnapshot.forEach((doc) => {
-                list.push(doc.data());
+                const data = doc.data();
+                console.log('Datos recibidos de Firebase:', data); // Debug requested by user
+
+                // Explicitly mapping fields as requested
+                list.push({
+                    name: data.name,
+                    seconds: data.seconds,
+                    timeStr: data.timeStr,
+                    difficulty: data.difficulty,
+                    date: data.date
+                });
             });
 
+            // Client-side Sort and Limit (Bypasses missing composite index error)
+            list.sort((a, b) => a.seconds - b.seconds);
+            list = list.slice(0, 20);
+
+            console.log("Procesando lista final:", list);
             this.updateLeaderboardUI(list);
 
         } catch (error) {
