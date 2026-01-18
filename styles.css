@@ -354,6 +354,11 @@ body {
         margin-bottom: 5px;
     }
 
+    .logo-img {
+        height: 50px;
+        /* Reduced from 80px for mobile */
+    }
+
     .app-container {
         padding-top: max(5px, env(safe-area-inset-top));
         /* Reduced top padding */
