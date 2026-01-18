@@ -350,27 +350,27 @@ body {
     }
 
     .header {
-        margin-top: 2px;
-        margin-bottom: 2px;
-        /* Reduced spacing */
+        margin-top: 0;
+        margin-bottom: 0;
+        /* ZERO spacing */
     }
 
     .logo-img {
         height: 150px;
-        /* Increased to 150px as requested */
     }
 
     .app-container {
-        padding-top: max(2px, env(safe-area-inset-top));
+        padding-top: max(0px, env(safe-area-inset-top));
+        /* Minimize top padding */
         gap: 2px;
-        /* Tighter gap */
     }
 
     /* Reduce Status Bar Spacing */
     .status-bar {
         font-size: 0.8rem;
         padding: 0 5px;
-        margin-bottom: 2px;
+        margin-bottom: 0px;
+        /* No margin bottom */
     }
 
     .status-value {
@@ -379,8 +379,9 @@ body {
 
     /* Reduce Control Buttons Size */
     .controls-area {
-        padding: 2px 0;
-        /* Reduced padding */
+        padding: 10px 0;
+        /* Increased vertical padding to separate from grid/numpad */
+        margin: 5px 0;
     }
 
     .control-btn {
