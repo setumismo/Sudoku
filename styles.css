@@ -350,20 +350,20 @@ body {
     }
 
     .header {
-        margin-top: 5px;
-        margin-bottom: 5px;
+        margin-top: 2px;
+        margin-bottom: 2px;
+        /* Reduced spacing */
     }
 
     .logo-img {
-        height: 100px;
-        /* Increased to 100px as requested */
+        height: 150px;
+        /* Increased to 150px as requested */
     }
 
     .app-container {
-        padding-top: max(5px, env(safe-area-inset-top));
-        /* Reduced top padding */
-        gap: 5px;
-        /* Reduced gap between main elements */
+        padding-top: max(2px, env(safe-area-inset-top));
+        gap: 2px;
+        /* Tighter gap */
     }
 
     /* Reduce Status Bar Spacing */
@@ -394,8 +394,6 @@ body {
         /* Smaller icons */
         height: 20px;
     }
-
-    /* Compact Numpad */
 }
 
 .num-btn {
