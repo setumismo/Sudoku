@@ -1,3 +1,34 @@
+// Firebase Configuration (Directly in file to support file:// protocol)
+const firebaseConfig = {
+    apiKey: "AIzaSyDy02OC8VwNPEu4-E8if0SgX4ApC48xpcI",
+    authDomain: "sudoku-web-1af44.firebaseapp.com",
+    projectId: "sudoku-web-1af44",
+    storageBucket: "sudoku-web-1af44.firebasestorage.app",
+    messagingSenderId: "949457141420",
+    appId: "1:949457141420:web:cb4580c171e2e195d62909",
+    measurementId: "G-C0Y9EBJN2L"
+};
+
+// Initialize Firebase (Compat Mode)
+let db;
+try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+
+    // Enable Offline Persistence
+    db.enablePersistence()
+        .catch((err) => {
+            if (err.code == 'failed-precondition') {
+                console.log('Persistence failed: Multiple tabs open');
+            } else if (err.code == 'unimplemented') {
+                console.log('Persistence not supported');
+            }
+        });
+} catch (e) {
+    console.error("Firebase Initialization Error:", e);
+    alert("Error conectando con la base de datos. El ranking online no funcionará.");
+}
+
 class SudokuGame {
     constructor() {
         this.board = Array(81).fill(null);
@@ -291,6 +322,7 @@ class SudokuGame {
     renderBoard() {
         this.dom.board.innerHTML = '';
         this.updateNumpadState();
+        this.updateNumpadCounts();
 
         this.board.forEach((cellData, index) => {
             const cell = document.createElement('div');
@@ -346,6 +378,28 @@ class SudokuGame {
             const num = parseInt(btn.dataset.num);
             if (num === this.selectedNumber) btn.classList.add('active');
             else btn.classList.remove('active');
+        });
+    }
+
+    updateNumpadCounts() {
+        const counts = Array(10).fill(0); // Index 1-9
+        this.board.forEach(cell => {
+            if (cell.value) counts[cell.value]++;
+        });
+
+        this.dom.numpad.forEach(btn => {
+            const num = parseInt(btn.dataset.num);
+            const count = counts[num];
+            const remaining = 9 - count;
+            const countSpan = btn.querySelector('.num-count');
+
+            if (countSpan) countSpan.textContent = remaining > 0 ? remaining : '';
+
+            if (remaining <= 0) {
+                btn.classList.add('completed');
+            } else {
+                btn.classList.remove('completed');
+            }
         });
     }
 
@@ -538,22 +592,36 @@ class SudokuGame {
 
     // --- Leaderboard Logic ---
 
-    saveScore(name) {
-        const scores = JSON.parse(localStorage.getItem('sudokuResults')) || {};
-        if (!scores[this.difficulty]) scores[this.difficulty] = [];
+    async saveScore(name) {
+        const timeStr = this.dom.timer.textContent;
+        const seconds = this.timer;
+        const date = new Date().toISOString();
 
-        const newScore = {
-            name: name,
-            timeStr: this.dom.timer.textContent,
-            seconds: this.timer,
-            date: new Date().toISOString()
-        };
+        // 1. Local Save (My Records)
+        const localScores = JSON.parse(localStorage.getItem('sudokuResults')) || {};
+        if (!localScores[this.difficulty]) localScores[this.difficulty] = [];
 
-        scores[this.difficulty].push(newScore);
-        scores[this.difficulty].sort((a, b) => a.seconds - b.seconds);
-        scores[this.difficulty] = scores[this.difficulty].slice(0, 100);
+        const newScore = { name, timeStr, seconds, date };
+        localScores[this.difficulty].push(newScore);
+        localScores[this.difficulty].sort((a, b) => a.seconds - b.seconds);
+        localScores[this.difficulty] = localScores[this.difficulty].slice(0, 100); // Keep top 100 locally
+        localStorage.setItem('sudokuResults', JSON.stringify(localScores));
 
-        localStorage.setItem('sudokuResults', JSON.stringify(scores));
+        // 2. Global Save (Firebase Compat)
+        if (db) {
+            try {
+                await db.collection("scores").add({
+                    name: name,
+                    timeStr: timeStr,
+                    seconds: seconds,
+                    difficulty: this.difficulty,
+                    date: date
+                });
+                console.log("Score saved to Firebase");
+            } catch (e) {
+                console.error("Error adding document: ", e);
+            }
+        }
     }
 
     showLeaderboard(defaultDiff = null) {
@@ -568,10 +636,38 @@ class SudokuGame {
         this.renderLeaderboardScores(diff);
     }
 
-    renderLeaderboardScores(difficulty) {
-        const scores = JSON.parse(localStorage.getItem('sudokuResults')) || {};
-        const list = scores[difficulty] || [];
+    async renderLeaderboardScores(difficulty) {
+        this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Cargando...</div>';
 
+        try {
+            if (!db) throw new Error("Database not initialized");
+
+            // Fetch Global Scores from Firebase (Compat)
+            const querySnapshot = await db.collection("scores")
+                .where("difficulty", "==", difficulty)
+                .orderBy("seconds", "asc")
+                .limit(20)
+                .get();
+
+            const list = [];
+            querySnapshot.forEach((doc) => {
+                list.push(doc.data());
+            });
+
+            this.updateLeaderboardUI(list);
+
+        } catch (error) {
+            console.error("Error fetching global scores:", error);
+            // Fallback to local
+            this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Offline - Mostrando récords locales</div>';
+
+            const scores = JSON.parse(localStorage.getItem('sudokuResults')) || {};
+            const localList = scores[difficulty] || [];
+            this.updateLeaderboardUI(localList);
+        }
+    }
+
+    updateLeaderboardUI(list) {
         this.dom.leaderboardList.innerHTML = '';
 
         if (list.length === 0) {
@@ -579,17 +675,25 @@ class SudokuGame {
             return;
         }
 
-        list.slice(0, 20).forEach((score, index) => {
+        list.forEach((score, index) => {
             const row = document.createElement('div');
             row.className = 'score-row';
 
             const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
             const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
 
+            // Simple date formatting if available
+            let dateStr = '';
+            if (score.date) {
+                const d = new Date(score.date);
+                dateStr = `<span class="player-date">${d.toLocaleDateString()}</span>`;
+            }
+
             row.innerHTML = `
                 <span class="rank ${rankClass}">${rankIcon}</span>
                 <span class="player-name">${score.name}</span>
-                <span class="player-time">${score.timeStr}</span>
+                <span class="player-time" style="flex-grow:0; margin-left:10px;">${score.timeStr}</span>
+                ${dateStr}
             `;
             this.dom.leaderboardList.appendChild(row);
         });
@@ -621,6 +725,5 @@ class SudokuGame {
     }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-    new SudokuGame();
-});
+// Start the game (Standard JS load)
+new SudokuGame();

@@ -343,14 +343,41 @@ body {
     background-color: var(--bg-page);
     border: none;
     border-radius: 8px;
-    padding: 15px 0;
+    padding: 5px 0;
+    /* Reduced padding to fit counter */
     font-size: 1.5rem;
     font-weight: 500;
     color: var(--accent);
     cursor: pointer;
-    transition: all 0.1s;
+    transition: all 0.2s;
     font-family: var(--font-family);
     box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 65px;
+    /* Fixed height for consistency */
+}
+
+.num-count {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+    margin-top: 2px;
+}
+
+.num-btn.completed {
+    background-color: transparent !important;
+    opacity: 0.5;
+    box-shadow: none;
+    color: var(--text-secondary);
+    transform: scale(0.95);
+}
+
+.num-btn.completed .num-count {
+    display: none;
+    /* Hide count when done, or keep it saying 0 */
 }
 
 .num-btn:active,
@@ -358,6 +385,10 @@ body {
     transform: scale(0.95);
     background-color: var(--accent);
     color: white;
+}
+
+.num-btn.active .num-count {
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .btn-primary {
@@ -540,6 +571,8 @@ body {
 .score-row {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    /* Fix vertical alignment */
     padding: 10px;
     border-bottom: 1px solid var(--cell-border);
     font-weight: 500;
@@ -582,4 +615,14 @@ body {
     font-family: monospace;
     font-weight: 700;
     color: var(--accent);
+    font-size: 1.1rem;
+    /* Increased size to look balanced with date */
+    margin-right: 15px;
+    /* Separate from date */
+}
+
+.player-date {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 400;
 }

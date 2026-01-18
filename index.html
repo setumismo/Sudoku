@@ -12,7 +12,6 @@
 </head>
 
 <body>
-
     <div class="app-container">
 
         <!-- Header -->
@@ -101,15 +100,15 @@
 
         <!-- Numpad -->
         <div class="numpad">
-            <button class="num-btn" data-num="1">1</button>
-            <button class="num-btn" data-num="2">2</button>
-            <button class="num-btn" data-num="3">3</button>
-            <button class="num-btn" data-num="4">4</button>
-            <button class="num-btn" data-num="5">5</button>
-            <button class="num-btn" data-num="6">6</button>
-            <button class="num-btn" data-num="7">7</button>
-            <button class="num-btn" data-num="8">8</button>
-            <button class="num-btn" data-num="9">9</button>
+            <button class="num-btn" data-num="1">1<span class="num-count">9</span></button>
+            <button class="num-btn" data-num="2">2<span class="num-count">9</span></button>
+            <button class="num-btn" data-num="3">3<span class="num-count">9</span></button>
+            <button class="num-btn" data-num="4">4<span class="num-count">9</span></button>
+            <button class="num-btn" data-num="5">5<span class="num-count">9</span></button>
+            <button class="num-btn" data-num="6">6<span class="num-count">9</span></button>
+            <button class="num-btn" data-num="7">7<span class="num-count">9</span></button>
+            <button class="num-btn" data-num="8">8<span class="num-count">9</span></button>
+            <button class="num-btn" data-num="9">9<span class="num-count">9</span></button>
         </div>
 
         <button id="btn-new-game" class="btn-primary">Nueva Partida</button>
@@ -153,6 +152,9 @@
         </div>
     </div>
 
+    <!-- Firebase Compat SDKs (Works with file://) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="script.js" defer></script>
 </body>
 
