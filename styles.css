@@ -323,7 +323,11 @@ body {
         min-height: 100vh;
         padding-left: 15px;
         padding-right: 15px;
-        justify-content: space-between;
+        justify-content: flex-start;
+        /* Was space-between */
+        padding-top: max(0px, env(safe-area-inset-top));
+        gap: 0px;
+        /* Was 2px, now 0 for maximum tightness */
     }
 
     body {
@@ -359,11 +363,7 @@ body {
         height: 150px;
     }
 
-    .app-container {
-        padding-top: max(0px, env(safe-area-inset-top));
-        /* Minimize top padding */
-        gap: 2px;
-    }
+
 
     /* Reduce Status Bar Spacing */
     .status-bar {
