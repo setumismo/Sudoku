@@ -193,8 +193,8 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: clamp(1.7rem, 5.5vw, 2.5rem);
-    /* Increased by ~40% */
+    font-size: clamp(1.6rem, 5.4vw, 2.4rem);
+    /* Reduced to ~35% increase */
     font-weight: 400;
     cursor: pointer;
     position: relative;
@@ -325,116 +325,7 @@ body {
     gap: 5px;
 }
 
-@media (max-width: 500px) {
-    .app-container {
-        border-radius: 0;
-        min-height: 100vh;
-        padding-left: 4px;
-        /* Reduced from 15px */
-        padding-right: 4px;
-        /* Reduced from 15px */
-        justify-content: flex-start;
-        /* Was space-between */
-        padding-top: max(0px, env(safe-area-inset-top));
-        gap: 0px;
-        /* Was 2px, now 0 for maximum tightness */
-    }
 
-    body {
-        padding: 0;
-        align-items: flex-start;
-    }
-
-    .numpad {
-        grid-template-columns: repeat(9, 1fr);
-        gap: 2px;
-        /* Minimal gap */
-    }
-
-    .num-btn {
-        padding: 2px 0;
-        font-size: 1.65rem;
-        /* Increased further (~50% from base) */
-        height: 75px;
-        /* Increased further (~50% from base) */
-        border-radius: 6px;
-    }
-
-    .num-btn .num-count {
-        font-size: 0.75rem;
-        /* Increased slightly */
-    }
-
-    .header {
-        margin-top: 5px;
-        /* Added small margin */
-        margin-bottom: 5px;
-        padding: 0 5px;
-    }
-
-    /* CSS "Crop" by limiting container height */
-    /* Flexible container */
-    .logo-container {
-        height: auto;
-        max-height: 80px;
-        /* Limit max height */
-        overflow: visible;
-        /* Allow seeing the whole thing */
-        display: flex;
-        align-items: center;
-    }
-
-    .logo-img {
-        height: auto;
-        max-height: 80px;
-        /* Match container */
-        max-width: 45vw;
-        /* Reduced further to 45vw (~15% more) */
-        object-fit: contain;
-    }
-
-    /* Dark Mode Logo Handling */
-    [data-theme="dark"] .logo-img {
-        filter: invert(1) hue-rotate(180deg);
-        /* Invert colors + fix hue if needed */
-        mix-blend-mode: screen;
-        /* Transparency for inverted black bg */
-    }
-
-
-
-    /* Reduce Status Bar Spacing */
-    .status-bar {
-        font-size: 0.8rem;
-        padding: 0 5px;
-        margin-bottom: 0px;
-        /* No margin bottom */
-    }
-
-    .status-value {
-        font-size: 1rem;
-    }
-
-    /* Reduce Control Buttons Size */
-    .controls-area {
-        padding: 5px 0;
-        /* Reduced padding */
-        /* Increased vertical padding to separate from grid/numpad */
-        margin: 5px 0;
-    }
-
-    .control-btn {
-        font-size: 0.65rem;
-        /* 20% smaller text */
-        gap: 2px;
-    }
-
-    .control-btn svg {
-        width: 20px;
-        /* Smaller icons */
-        height: 20px;
-    }
-}
 
 .num-btn {
     background-color: var(--bg-page);
@@ -722,4 +613,88 @@ body {
     font-size: 0.9rem;
     color: var(--text-secondary);
     font-weight: 400;
+}
+
+@media (max-width: 500px) {
+    .app-container {
+        border-radius: 0;
+        min-height: 100vh;
+        padding-left: 4px;
+        padding-right: 4px;
+        justify-content: flex-start;
+        padding-top: max(0px, env(safe-area-inset-top));
+        gap: 0px;
+    }
+
+    body {
+        padding: 0;
+        align-items: flex-start;
+    }
+
+    .numpad {
+        grid-template-columns: repeat(9, 1fr);
+        gap: 2px;
+    }
+
+    .num-btn {
+        padding: 2px 0;
+        font-size: 1.65rem;
+        height: 75px;
+        border-radius: 6px;
+    }
+
+    .num-btn .num-count {
+        font-size: 0.75rem;
+    }
+
+    .header {
+        margin-top: 5px;
+        margin-bottom: 5px;
+        padding: 0 5px;
+    }
+
+    .logo-container {
+        height: auto;
+        max-height: 80px;
+        overflow: visible;
+        display: flex;
+        align-items: center;
+    }
+
+    .logo-img {
+        height: auto;
+        max-height: 80px;
+        max-width: 45vw;
+        object-fit: contain;
+    }
+
+    [data-theme="dark"] .logo-img {
+        filter: invert(1) hue-rotate(180deg);
+        mix-blend-mode: screen;
+    }
+
+    .status-bar {
+        font-size: 0.8rem;
+        padding: 0 5px;
+        margin-bottom: 0px;
+    }
+
+    .status-value {
+        font-size: 1rem;
+    }
+
+    .controls-area {
+        padding: 5px 0;
+        margin: 5px 0;
+    }
+
+    .control-btn {
+        font-size: 0.65rem;
+        gap: 2px;
+    }
+
+    .control-btn svg {
+        width: 20px;
+        height: 20px;
+    }
 }
