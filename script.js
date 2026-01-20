@@ -529,6 +529,17 @@ class SudokuGame {
         this.mistakes = 0; // Reset mistakes
         this.updateMistakesDisplay();
         this.isGameOver = false;
+
+        // Clean up any fatal errors that caused the Game Over
+        this.board.forEach(cell => {
+            if (cell.error) {
+                cell.value = null;
+                cell.error = false;
+                cell.notes = [];
+            }
+        });
+        this.renderBoard();
+
         this.dom.modal.classList.add('hidden');
         this.startTimer();
     }
