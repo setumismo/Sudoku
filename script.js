@@ -29,6 +29,97 @@ try {
     alert("Error conectando con la base de datos. El ranking online no funcionará.");
 }
 
+// Sound Manager using Web Audio API
+class SoundManager {
+    constructor() {
+        this.context = null;
+        this.enabled = true;
+        this.masterGain = null;
+    }
+
+    init() {
+        if (!this.enabled || this.context) return;
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            this.context = new AudioContext();
+            this.masterGain = this.context.createGain();
+            this.masterGain.gain.value = 0.3; // Default volume
+            this.masterGain.connect(this.context.destination);
+        } catch (e) {
+            console.warn("Web Audio API not supported", e);
+        }
+    }
+
+    toggle() {
+        this.enabled = !this.enabled;
+        if (this.enabled && !this.context) this.init();
+        return this.enabled;
+    }
+
+    playTone(freq, type, duration, startTime = 0, vol = 1) {
+        if (!this.enabled || !this.context) return;
+
+        // Resume context if suspended (browser auto-play policy)
+        if (this.context.state === 'suspended') this.context.resume();
+
+        const osc = this.context.createOscillator();
+        const gain = this.context.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.context.currentTime + startTime);
+
+        gain.gain.setValueAtTime(vol, this.context.currentTime + startTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.context.currentTime + startTime + duration);
+
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+
+        osc.start(this.context.currentTime + startTime);
+        osc.stop(this.context.currentTime + startTime + duration);
+    }
+
+    playClick() {
+        // Soft sine "bop"
+        this.playTone(800, 'sine', 0.1, 0, 0.5);
+    }
+
+    playError() {
+        // Buzzer: Low sawtooth
+        this.playTone(150, 'sawtooth', 0.4, 0, 0.8);
+        this.playTone(100, 'sawtooth', 0.4, 0.1, 0.8);
+        this.vibrate(200); // Heavy impact
+    }
+
+    playSuccess() {
+        // Chime: Major triad
+        const now = 0;
+        this.playTone(523.25, 'sine', 0.2, now, 0.6); // C5
+        this.playTone(659.25, 'sine', 0.2, now + 0.1, 0.6); // E5
+        this.playTone(783.99, 'sine', 0.4, now + 0.2, 0.6); // G5
+        this.vibrate(50); // Light impact
+    }
+
+    playWin() {
+        // Fanfare
+        const now = 0;
+        const notes = [
+            { f: 523.25, t: 0, d: 0.2 }, // C
+            { f: 523.25, t: 0.2, d: 0.2 }, // C
+            { f: 523.25, t: 0.4, d: 0.2 }, // C
+            { f: 659.25, t: 0.6, d: 0.4 }, // E
+            { f: 783.99, t: 1.0, d: 0.4 }, // G
+            { f: 1046.50, t: 1.4, d: 0.8 } // C6
+        ];
+        notes.forEach(n => this.playTone(n.f, 'triangle', n.d, n.t, 0.7));
+    }
+
+    vibrate(pattern) {
+        if (this.enabled && navigator.vibrate) {
+            navigator.vibrate(pattern);
+        }
+    }
+}
+
 class SudokuGame {
     constructor() {
         this.board = Array(81).fill(null);
@@ -43,6 +134,7 @@ class SudokuGame {
         this.timer = 0;
         this.timerInterval = null;
         this.isGameOver = false;
+        this.soundManager = new SoundManager();
 
         this.dom = {
             board: document.getElementById('sudoku-board'),
@@ -51,6 +143,7 @@ class SudokuGame {
             level: document.getElementById('level-display'),
             difficultySelect: document.getElementById('difficulty-select'),
             themeToggle: document.getElementById('theme-toggle'),
+            soundToggle: document.getElementById('sound-toggle'), // Added
             newGameBtn: document.getElementById('btn-new-game'),
             undoBtn: document.getElementById('btn-undo'),
             eraseBtn: document.getElementById('btn-erase'),
@@ -88,9 +181,30 @@ class SudokuGame {
         this.setupEventListeners();
         this.loadTheme();
         this.startNewGame();
+
+        // Audio Init
+        const initAudio = () => {
+            if (this.soundManager) {
+                this.soundManager.init();
+                document.removeEventListener('click', initAudio);
+                document.removeEventListener('keydown', initAudio);
+            }
+        };
+        document.addEventListener('click', initAudio);
+        document.addEventListener('keydown', initAudio);
     }
 
     setupEventListeners() {
+        // Sound Toggle
+        if (this.dom.soundToggle) {
+            this.dom.soundToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isEnabled = this.soundManager.toggle();
+                this.dom.soundToggle.querySelector('.sound-on').style.display = isEnabled ? 'block' : 'none';
+                this.dom.soundToggle.querySelector('.sound-off').style.display = isEnabled ? 'none' : 'block';
+            });
+        }
+
         // Difficulty
         this.dom.difficultySelect.addEventListener('change', (e) => {
             if (confirm('¿Iniciar nueva partida con esta dificultad?')) {
@@ -407,6 +521,7 @@ class SudokuGame {
 
     handleCellClick(index) {
         if (this.isGameOver) return;
+        this.soundManager.playClick();
         if (this.selectedNumber !== null) {
             this.applyNumberToCell(index, this.selectedNumber);
         } else {
@@ -487,6 +602,7 @@ class SudokuGame {
                 cell.value = num;
                 cell.error = true;
                 this.mistakes++;
+                this.soundManager.playError();
                 this.applyPenalty(10);
                 this.updateMistakesDisplay();
 
@@ -510,11 +626,52 @@ class SudokuGame {
                 cell.error = false;
 
                 this.clearRelatedNotes(index, num); // Smart Notes: Auto-clear
+
+                // Check for unit completion (Success Sound)
+                if (this.checkUnitCompletion(index)) {
+                    this.soundManager.playSuccess();
+                } else {
+                    this.soundManager.playClick();
+                }
+
                 this.checkWin();
                 this.renderBoard();
             }
         }
     }
+
+    checkUnitCompletion(index) {
+        const row = Math.floor(index / 9);
+        const col = index % 9;
+        const startRow = row - (row % 3);
+        const startCol = col - (col % 3);
+
+        // Check Row
+        let rowComplete = true;
+        for (let c = 0; c < 9; c++) {
+            if (this.board[row * 9 + c].value === null) { rowComplete = false; break; }
+        }
+        if (rowComplete) return true;
+
+        // Check Col
+        let colComplete = true;
+        for (let r = 0; r < 9; r++) {
+            if (this.board[r * 9 + col].value === null) { colComplete = false; break; }
+        }
+        if (colComplete) return true;
+
+        // Check Box
+        let boxComplete = true;
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (this.board[(startRow + i) * 9 + (startCol + j)].value === null) { boxComplete = false; break; }
+            }
+        }
+        if (boxComplete) return true;
+
+        return false;
+    }
+
 
     applyPenalty(seconds) {
         this.timer += seconds;
@@ -650,6 +807,7 @@ class SudokuGame {
             this.isGameOver = true;
             this.stopTimer();
             // Show Victory Modal
+            this.soundManager.playWin();
             this.dom.finalTime.textContent = this.dom.timer.textContent;
             this.dom.victoryModal.classList.remove('hidden');
         }
