@@ -193,7 +193,8 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: clamp(1.2rem, 4vw, 1.8rem);
+    font-size: clamp(1.7rem, 5.5vw, 2.5rem);
+    /* Increased by ~40% */
     font-weight: 400;
     cursor: pointer;
     position: relative;
@@ -352,10 +353,10 @@ body {
 
     .num-btn {
         padding: 2px 0;
-        font-size: 1.45rem;
-        /* Increased from 1.1rem (~30%) */
-        height: 65px;
-        /* Increased from 50px (~30%) */
+        font-size: 1.65rem;
+        /* Increased further (~50% from base) */
+        height: 75px;
+        /* Increased further (~50% from base) */
         border-radius: 6px;
     }
 
