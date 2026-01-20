@@ -245,8 +245,9 @@ body {
 }
 
 .cell.error {
-    color: var(--error) !important;
-    background-color: rgba(229, 62, 62, 0.1);
+    /* color: var(--error) !important; Removed to keep number normal color as requested */
+    background-color: rgba(229, 62, 62, 0.2);
+    /* Slightly more visible red background */
     animation: shake 0.3s ease-in-out;
 }
 
