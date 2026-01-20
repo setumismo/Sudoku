@@ -57,7 +57,9 @@ class SoundManager {
     }
 
     playTone(freq, type, duration, startTime = 0, vol = 1) {
-        if (!this.enabled || !this.context) return;
+        if (!this.enabled) return;
+        if (!this.context) this.init(); // Lazy init on first sound
+        if (!this.context) return;
 
         // Resume context if suspended (browser auto-play policy)
         if (this.context.state === 'suspended') this.context.resume();
