@@ -242,7 +242,7 @@ class SudokuGame {
         this.fillDiagonalBoxes(grid);
         this.solveSudoku(grid);
         this.solution = [...grid];
-        const attempts = this.difficulty === 'easy' ? 30 : this.difficulty === 'medium' ? 45 : 55;
+        const attempts = this.difficulty === 'easy' ? 30 : this.difficulty === 'medium' ? 40 : 55;
         this.removeNumbers(grid, attempts);
 
         this.board = grid.map((val, index) => ({
@@ -487,7 +487,7 @@ class SudokuGame {
                 cell.value = num;
                 cell.error = true;
                 this.mistakes++;
-                this.applyPenalty(5);
+                this.applyPenalty(10);
                 this.updateMistakesDisplay();
 
                 this.renderBoard();
@@ -525,7 +525,7 @@ class SudokuGame {
     }
 
     reviveGame() {
-        this.applyPenalty(10); // +10s "Cost"
+        this.applyPenalty(30); // +30s "Cost"
         this.mistakes = 0; // Reset mistakes
         this.updateMistakesDisplay();
         this.isGameOver = false;
@@ -590,7 +590,7 @@ class SudokuGame {
         if (emptyIndices.length === 0) return;
 
         this.saveState();
-        this.applyPenalty(10);
+        this.applyPenalty(30);
 
         let targetIndex;
         if (this.selectedCellIndex !== -1 && !this.board[this.selectedCellIndex].fixed && !this.board[this.selectedCellIndex].value) {

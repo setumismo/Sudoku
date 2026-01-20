@@ -246,8 +246,8 @@ body {
 
 .cell.error {
     /* color: var(--error) !important; Removed to keep number normal color as requested */
-    background-color: rgba(229, 62, 62, 0.2);
-    /* Slightly more visible red background */
+    background-color: rgba(255, 0, 0, 0.5) !important;
+    /* Pure Red with opacity, !important overrides selection */
     animation: shake 0.3s ease-in-out;
 }
 
@@ -317,6 +317,19 @@ body {
     font-size: 0.6rem;
     padding: 2px 4px;
     border-radius: 4px;
+}
+
+.hint-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: var(--accent);
+    color: white;
+    font-size: 0.6rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-weight: 700;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* Numpad */
