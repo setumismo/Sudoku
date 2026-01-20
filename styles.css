@@ -638,8 +638,8 @@ body {
 
     .num-btn {
         padding: 2px 0;
-        font-size: 1.65rem;
-        height: 75px;
+        font-size: 1.65rem !important;
+        height: 75px !important;
         border-radius: 6px;
     }
 
