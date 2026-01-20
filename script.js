@@ -430,401 +430,371 @@ class SudokuGame {
         this.handleNumberInput(num);
     }
 
+
+
+    // Smart Note Logic: Clears 'num' from notes in the same Row, Col, and Box
+    clearRelatedNotes(index, num) {
+        const row = Math.floor(index / 9);
+        const col = index % 9;
+        const startRow = row - (row % 3);
+        const startCol = col - (col % 3);
+
+        // 1. Clear Row
+        for (let c = 0; c < 9; c++) this.removeNoteFromCell(row * 9 + c, num);
+
+        // 2. Clear Column
+        for (let r = 0; r < 9; r++) this.removeNoteFromCell(r * 9 + col, num);
+
+        // 3. Clear Box (Quadrant)
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                this.removeNoteFromCell((startRow + i) * 9 + (startCol + j), num);
+            }
+        }
+    }
+
+    removeNoteFromCell(idx, num) {
+        if (idx < 0 || idx >= 81) return;
+        const cell = this.board[idx];
+        if (!cell.fixed && !cell.value && cell.notes.includes(num)) {
+            cell.notes = cell.notes.filter(n => n !== num);
+        }
+    }
+
     applyNumberToCell(index, num) {
         const cell = this.board[index];
         if (cell.fixed) return;
 
-        this.saveState();
-
+        // Notes Mode Logic (unchanged)
         if (this.notesMode) {
+            this.saveState();
             if (cell.notes.includes(num)) cell.notes = cell.notes.filter(n => n !== num);
             else { cell.notes.push(num); cell.notes.sort(); }
             if (cell.value !== null) cell.value = null;
-        } else {
-            if (cell.value === num) {
-                cell.value = null;
-            } else {
-                cell.value = num;
-                cell.notes = [];
-
-                if (num !== this.solution[index]) {
-                    cell.error = true;
-                    this.mistakes++;
-                    this.applyPenalty(5); // +5s Penalty
-                    this.updateMistakesDisplay();
-                    this.checkGameOver();
-                } else {
-                    cell.error = false;
-                    this.clearRelatedNotes(index, num); // Smart Notes: Auto-clear
-                    this.checkWin();
-                }
-            }
             this.renderBoard();
+            return;
         }
 
-        // Smart Note Logic: Clears 'num' from notes in the same Row, Col, and Box
-        clearRelatedNotes(index, num) {
-            const row = Math.floor(index / 9);
-            const col = index % 9;
-            const startRow = row - (row % 3);
-            const startCol = col - (col % 3);
-
-            // 1. Clear Row
-            for (let c = 0; c < 9; c++) this.removeNoteFromCell(row * 9 + c, num);
-
-            // 2. Clear Column
-            for (let r = 0; r < 9; r++) this.removeNoteFromCell(r * 9 + col, num);
-
-            // 3. Clear Box (Quadrant)
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    this.removeNoteFromCell((startRow + i) * 9 + (startCol + j), num);
-                }
-            }
-        }
-
-        removeNoteFromCell(idx, num) {
-            if (idx < 0 || idx >= 81) return;
-            const cell = this.board[idx];
-            if (!cell.fixed && !cell.value && cell.notes.includes(num)) {
-                cell.notes = cell.notes.filter(n => n !== num);
-            }
-        }
-
-        applyNumberToCell(index, num) {
-            const cell = this.board[index];
-            if (cell.fixed) return;
-
-            // Notes Mode Logic (unchanged)
-            if (this.notesMode) {
-                this.saveState();
-                if (cell.notes.includes(num)) cell.notes = cell.notes.filter(n => n !== num);
-                else { cell.notes.push(num); cell.notes.sort(); }
-                if (cell.value !== null) cell.value = null;
-                this.renderBoard();
-                return;
-            }
-
-            // Standard Input Logic
-            if (cell.value === num) {
-                this.saveState();
-                cell.value = null;
-                this.renderBoard();
-            } else {
-                // Check Correctness FIRST
-                if (num !== this.solution[index]) {
-                    // Incorrect: Penalty, Visual Feedback, Auto-Clear (No History Save)
-                    cell.value = num;
-                    cell.error = true;
-                    this.mistakes++;
-                    this.applyPenalty(5);
-                    this.updateMistakesDisplay();
-
-                    this.renderBoard();
-                    this.checkGameOver();
-
-                    // Auto-clear after 1s
-                    setTimeout(() => {
-                        if (!this.isGameOver) {
-                            cell.value = null;
-                            cell.error = false;
-                            this.renderBoard();
-                        }
-                    }, 1000);
-
-                } else {
-                    // Correct: Save State, apply value
-                    this.saveState();
-                    cell.value = num;
-                    cell.notes = [];
-                    cell.error = false;
-
-                    this.clearRelatedNotes(index, num); // Smart Notes: Auto-clear
-                    this.checkWin();
-                    this.renderBoard();
-                }
-            }
-        }
-
-        applyPenalty(seconds) {
-            this.timer += seconds;
-            this.updateTimerDisplay();
-            // Visual feedback
-            this.dom.timer.classList.add('penalty-anim');
-            setTimeout(() => this.dom.timer.classList.remove('penalty-anim'), 500);
-        }
-
-        reviveGame() {
-            this.applyPenalty(10); // +10s "Cost"
-            this.mistakes = 0; // Reset mistakes
-            this.updateMistakesDisplay();
-            this.isGameOver = false;
-            this.dom.modal.classList.add('hidden');
-            this.startTimer();
-        }
-
-        deselectAll() {
-            this.selectedCellIndex = -1;
-            this.selectedNumber = null;
-            this.renderBoard();
-        }
-
-        moveSelection(delta) {
-            if (this.selectedCellIndex === -1) {
-                this.selectedCellIndex = 0;
-                this.selectedNumber = null;
-            } else {
-                let newIndex = this.selectedCellIndex + delta;
-                if (newIndex >= 0 && newIndex < 81) {
-                    this.selectedCellIndex = newIndex;
-                    this.selectedNumber = null;
-                }
-            }
-            this.renderBoard();
-        }
-
-        erase() {
-            if (this.selectedCellIndex === -1 || this.isGameOver) return;
-            const cell = this.board[this.selectedCellIndex];
-            if (cell.fixed) return;
-
+        // Standard Input Logic
+        if (cell.value === num) {
             this.saveState();
             cell.value = null;
-            cell.notes = [];
-            cell.error = false;
             this.renderBoard();
-        }
+        } else {
+            // Check Correctness FIRST
+            if (num !== this.solution[index]) {
+                // Incorrect: Penalty, Visual Feedback, Auto-Clear (No History Save)
+                cell.value = num;
+                cell.error = true;
+                this.mistakes++;
+                this.applyPenalty(5);
+                this.updateMistakesDisplay();
 
-        toggleNotesMode() {
-            this.notesMode = !this.notesMode;
-            const btn = this.dom.notesBtn;
-            btn.classList.toggle('active', this.notesMode);
-            btn.querySelector('.toggle-indicator').textContent = this.notesMode ? 'ON' : 'OFF';
-            if (!this.notesMode) this.deselectAll();
-        }
+                this.renderBoard();
+                this.checkGameOver();
 
-        useHint() {
-            if (this.isGameOver) return;
-            const emptyIndices = this.board.map((c, i) => (c.value === null && !c.fixed) ? i : -1).filter(i => i !== -1);
-            if (emptyIndices.length === 0) return;
+                // Auto-clear after 1s
+                setTimeout(() => {
+                    if (!this.isGameOver) {
+                        cell.value = null;
+                        cell.error = false;
+                        this.renderBoard();
+                    }
+                }, 1000);
 
-            this.saveState();
-            this.applyPenalty(10);
-
-            let targetIndex;
-            if (this.selectedCellIndex !== -1 && !this.board[this.selectedCellIndex].fixed && !this.board[this.selectedCellIndex].value) {
-                targetIndex = this.selectedCellIndex;
             } else {
-                targetIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+                // Correct: Save State, apply value
+                this.saveState();
+                cell.value = num;
+                cell.notes = [];
+                cell.error = false;
+
+                this.clearRelatedNotes(index, num); // Smart Notes: Auto-clear
+                this.checkWin();
+                this.renderBoard();
             }
+        }
+    }
 
-            const visibleCell = this.board[targetIndex];
-            visibleCell.value = this.solution[targetIndex];
-            visibleCell.notes = [];
-            visibleCell.error = false;
+    applyPenalty(seconds) {
+        this.timer += seconds;
+        this.updateTimerDisplay();
+        // Visual feedback
+        this.dom.timer.classList.add('penalty-anim');
+        setTimeout(() => this.dom.timer.classList.remove('penalty-anim'), 500);
+    }
 
-            this.selectedCellIndex = targetIndex;
+    reviveGame() {
+        this.applyPenalty(10); // +10s "Cost"
+        this.mistakes = 0; // Reset mistakes
+        this.updateMistakesDisplay();
+        this.isGameOver = false;
+        this.dom.modal.classList.add('hidden');
+        this.startTimer();
+    }
+
+    deselectAll() {
+        this.selectedCellIndex = -1;
+        this.selectedNumber = null;
+        this.renderBoard();
+    }
+
+    moveSelection(delta) {
+        if (this.selectedCellIndex === -1) {
+            this.selectedCellIndex = 0;
             this.selectedNumber = null;
-            this.renderBoard();
-        }
-
-        undo() {
-            if (this.history.length === 0 || this.isGameOver) return;
-            const prevState = this.history.pop();
-            this.board = prevState.board;
-            // this.mistakes = prevState.mistakes; // REMOVED: Mistakes persist through undo
-            this.updateMistakesDisplay();
-            this.renderBoard();
-        }
-
-        saveState() {
-            if (this.history.length > 20) this.history.shift();
-            this.history.push({
-                board: JSON.parse(JSON.stringify(this.board)),
-                mistakes: this.mistakes
-            });
-        }
-
-        updateMistakesDisplay() {
-            this.dom.mistakes.textContent = `${this.mistakes}/${this.maxMistakes}`;
-            if (this.mistakes >= 2) this.dom.mistakes.style.color = 'var(--error)';
-            else this.dom.mistakes.style.color = 'var(--text-primary)';
-        }
-
-        checkGameOver() {
-            if (this.mistakes >= this.maxMistakes) {
-                this.isGameOver = true;
-                this.stopTimer();
-                this.dom.modalTitle.textContent = "¡Juego Terminado!";
-                this.dom.modalMessage.textContent = "Has cometido demasiados errores.";
-                this.dom.modal.classList.remove('hidden');
+        } else {
+            let newIndex = this.selectedCellIndex + delta;
+            if (newIndex >= 0 && newIndex < 81) {
+                this.selectedCellIndex = newIndex;
+                this.selectedNumber = null;
             }
         }
+        this.renderBoard();
+    }
 
-        checkWin() {
-            const isFull = this.board.every(cell => cell.value !== null);
-            const noErrors = this.board.every(cell => !cell.error);
+    erase() {
+        if (this.selectedCellIndex === -1 || this.isGameOver) return;
+        const cell = this.board[this.selectedCellIndex];
+        if (cell.fixed) return;
 
-            if (isFull && noErrors) {
-                this.isGameOver = true;
-                this.stopTimer();
-                // Show Victory Modal
-                this.dom.finalTime.textContent = this.dom.timer.textContent;
-                this.dom.victoryModal.classList.remove('hidden');
-            }
+        this.saveState();
+        cell.value = null;
+        cell.notes = [];
+        cell.error = false;
+        this.renderBoard();
+    }
+
+    toggleNotesMode() {
+        this.notesMode = !this.notesMode;
+        const btn = this.dom.notesBtn;
+        btn.classList.toggle('active', this.notesMode);
+        btn.querySelector('.toggle-indicator').textContent = this.notesMode ? 'ON' : 'OFF';
+        if (!this.notesMode) this.deselectAll();
+    }
+
+    useHint() {
+        if (this.isGameOver) return;
+        const emptyIndices = this.board.map((c, i) => (c.value === null && !c.fixed) ? i : -1).filter(i => i !== -1);
+        if (emptyIndices.length === 0) return;
+
+        this.saveState();
+        this.applyPenalty(10);
+
+        let targetIndex;
+        if (this.selectedCellIndex !== -1 && !this.board[this.selectedCellIndex].fixed && !this.board[this.selectedCellIndex].value) {
+            targetIndex = this.selectedCellIndex;
+        } else {
+            targetIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
         }
+
+        const visibleCell = this.board[targetIndex];
+        visibleCell.value = this.solution[targetIndex];
+        visibleCell.notes = [];
+        visibleCell.error = false;
+
+        this.selectedCellIndex = targetIndex;
+        this.selectedNumber = null;
+        this.renderBoard();
+    }
+
+    undo() {
+        if (this.history.length === 0 || this.isGameOver) return;
+        const prevState = this.history.pop();
+        this.board = prevState.board;
+        // this.mistakes = prevState.mistakes; // REMOVED: Mistakes persist through undo
+        this.updateMistakesDisplay();
+        this.renderBoard();
+    }
+
+    saveState() {
+        if (this.history.length > 20) this.history.shift();
+        this.history.push({
+            board: JSON.parse(JSON.stringify(this.board)),
+            mistakes: this.mistakes
+        });
+    }
+
+    updateMistakesDisplay() {
+        this.dom.mistakes.textContent = `${this.mistakes}/${this.maxMistakes}`;
+        if (this.mistakes >= 2) this.dom.mistakes.style.color = 'var(--error)';
+        else this.dom.mistakes.style.color = 'var(--text-primary)';
+    }
+
+    checkGameOver() {
+        if (this.mistakes >= this.maxMistakes) {
+            this.isGameOver = true;
+            this.stopTimer();
+            this.dom.modalTitle.textContent = "¡Juego Terminado!";
+            this.dom.modalMessage.textContent = "Has cometido demasiados errores.";
+            this.dom.modal.classList.remove('hidden');
+        }
+    }
+
+    checkWin() {
+        const isFull = this.board.every(cell => cell.value !== null);
+        const noErrors = this.board.every(cell => !cell.error);
+
+        if (isFull && noErrors) {
+            this.isGameOver = true;
+            this.stopTimer();
+            // Show Victory Modal
+            this.dom.finalTime.textContent = this.dom.timer.textContent;
+            this.dom.victoryModal.classList.remove('hidden');
+        }
+    }
 
     // --- Leaderboard Logic ---
 
     async saveScore(name) {
-            const timeStr = this.dom.timer.textContent;
-            const seconds = this.timer;
-            const date = new Date().toISOString();
+        const timeStr = this.dom.timer.textContent;
+        const seconds = this.timer;
+        const date = new Date().toISOString();
 
-            // 1. Local Save (My Records)
-            const localScores = JSON.parse(localStorage.getItem('sudokuResults')) || {};
-            if (!localScores[this.difficulty]) localScores[this.difficulty] = [];
+        // 1. Local Save (My Records)
+        const localScores = JSON.parse(localStorage.getItem('sudokuResults')) || {};
+        if (!localScores[this.difficulty]) localScores[this.difficulty] = [];
 
-            const newScore = { name, timeStr, seconds, date };
-            localScores[this.difficulty].push(newScore);
-            localScores[this.difficulty].sort((a, b) => a.seconds - b.seconds);
-            localScores[this.difficulty] = localScores[this.difficulty].slice(0, 100); // Keep top 100 locally
-            localStorage.setItem('sudokuResults', JSON.stringify(localScores));
+        const newScore = { name, timeStr, seconds, date };
+        localScores[this.difficulty].push(newScore);
+        localScores[this.difficulty].sort((a, b) => a.seconds - b.seconds);
+        localScores[this.difficulty] = localScores[this.difficulty].slice(0, 100); // Keep top 100 locally
+        localStorage.setItem('sudokuResults', JSON.stringify(localScores));
 
-            // 2. Global Save (Firebase Compat)
-            if (db) {
-                try {
-                    await db.collection("scores").add({
-                        name: name,
-                        timeStr: timeStr,
-                        seconds: seconds,
-                        difficulty: this.difficulty,
-                        date: date
-                    });
-                    console.log("Score saved to Firebase");
-                } catch (e) {
-                    console.error("Error adding document: ", e);
-                }
+        // 2. Global Save (Firebase Compat)
+        if (db) {
+            try {
+                await db.collection("scores").add({
+                    name: name,
+                    timeStr: timeStr,
+                    seconds: seconds,
+                    difficulty: this.difficulty,
+                    date: date
+                });
+                console.log("Score saved to Firebase");
+            } catch (e) {
+                console.error("Error adding document: ", e);
             }
         }
+    }
 
-        showLeaderboard(defaultDiff = null) {
-            this.dom.leaderboardModal.classList.remove('hidden');
-            const diff = defaultDiff || this.difficulty;
+    showLeaderboard(defaultDiff = null) {
+        this.dom.leaderboardModal.classList.remove('hidden');
+        const diff = defaultDiff || this.difficulty;
 
-            this.dom.tabBtns.forEach(btn => {
-                if (btn.dataset.diff === diff) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
+        this.dom.tabBtns.forEach(btn => {
+            if (btn.dataset.diff === diff) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
 
-            this.renderLeaderboardScores(diff);
-        }
+        this.renderLeaderboardScores(diff);
+    }
 
     async renderLeaderboardScores(difficulty) {
-            this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Cargando...</div>';
+        this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Cargando...</div>';
 
-            try {
-                if (!db) throw new Error("Database not initialized");
+        try {
+            if (!db) throw new Error("Database not initialized");
 
-                // Fetch Global Scores from Firebase (Compat)
-                console.log(`Fetching scores for difficulty: ${difficulty}`);
-                const querySnapshot = await db.collection("scores")
-                    .where("difficulty", "==", difficulty)
-                    .limit(100) // Fetch top 100 candidates to sort client-side
-                    .get();
+            // Fetch Global Scores from Firebase (Compat)
+            console.log(`Fetching scores for difficulty: ${difficulty}`);
+            const querySnapshot = await db.collection("scores")
+                .where("difficulty", "==", difficulty)
+                .limit(100) // Fetch top 100 candidates to sort client-side
+                .get();
 
-                console.log(`Found ${querySnapshot.size} documents.`);
+            console.log(`Found ${querySnapshot.size} documents.`);
 
-                let list = [];
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    console.log('Datos recibidos de Firebase:', data); // Debug requested by user
+            let list = [];
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                console.log('Datos recibidos de Firebase:', data); // Debug requested by user
 
-                    // Explicitly mapping fields as requested
-                    list.push({
-                        name: data.name,
-                        seconds: data.seconds,
-                        timeStr: data.timeStr,
-                        difficulty: data.difficulty,
-                        date: data.date
-                    });
+                // Explicitly mapping fields as requested
+                list.push({
+                    name: data.name,
+                    seconds: data.seconds,
+                    timeStr: data.timeStr,
+                    difficulty: data.difficulty,
+                    date: data.date
                 });
+            });
 
-                // Client-side Sort and Limit (Bypasses missing composite index error)
-                list.sort((a, b) => a.seconds - b.seconds);
-                list = list.slice(0, 20);
+            // Client-side Sort and Limit (Bypasses missing composite index error)
+            list.sort((a, b) => a.seconds - b.seconds);
+            list = list.slice(0, 20);
 
-                console.log("Procesando lista final:", list);
-                this.updateLeaderboardUI(list);
+            console.log("Procesando lista final:", list);
+            this.updateLeaderboardUI(list);
 
-            } catch (error) {
-                console.error("Error fetching global scores:", error);
-                // Fallback to local
-                this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Offline - Mostrando récords locales</div>';
+        } catch (error) {
+            console.error("Error fetching global scores:", error);
+            // Fallback to local
+            this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Offline - Mostrando récords locales</div>';
 
-                const scores = JSON.parse(localStorage.getItem('sudokuResults')) || {};
-                const localList = scores[difficulty] || [];
-                this.updateLeaderboardUI(localList);
-            }
+            const scores = JSON.parse(localStorage.getItem('sudokuResults')) || {};
+            const localList = scores[difficulty] || [];
+            this.updateLeaderboardUI(localList);
+        }
+    }
+
+    updateLeaderboardUI(list) {
+        this.dom.leaderboardList.innerHTML = '';
+
+        if (list.length === 0) {
+            this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">No hay puntuaciones aún.</div>';
+            return;
         }
 
-        updateLeaderboardUI(list) {
-            this.dom.leaderboardList.innerHTML = '';
+        list.forEach((score, index) => {
+            const row = document.createElement('div');
+            row.className = 'score-row';
 
-            if (list.length === 0) {
-                this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">No hay puntuaciones aún.</div>';
-                return;
+            const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
+            const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+
+            // Simple date formatting if available
+            let dateStr = '';
+            if (score.date) {
+                const d = new Date(score.date);
+                dateStr = `<span class="player-date">${d.toLocaleDateString()}</span>`;
             }
 
-            list.forEach((score, index) => {
-                const row = document.createElement('div');
-                row.className = 'score-row';
-
-                const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
-                const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
-
-                // Simple date formatting if available
-                let dateStr = '';
-                if (score.date) {
-                    const d = new Date(score.date);
-                    dateStr = `<span class="player-date">${d.toLocaleDateString()}</span>`;
-                }
-
-                row.innerHTML = `
+            row.innerHTML = `
                 <span class="rank ${rankClass}">${rankIcon}</span>
                 <span class="player-name">${score.name}</span>
                 <span class="player-time" style="flex-grow:0; margin-left:10px;">${score.timeStr}</span>
                 ${dateStr}
             `;
-                this.dom.leaderboardList.appendChild(row);
-            });
-        }
-
-        startTimer() {
-            this.stopTimer();
-            this.updateTimerDisplay();
-            this.timerInterval = setInterval(() => {
-                this.timer++;
-                this.updateTimerDisplay();
-            }, 1000);
-        }
-
-        stopTimer() {
-            if (this.timerInterval) clearInterval(this.timerInterval);
-        }
-
-        resetTimer() {
-            this.stopTimer();
-            this.timer = 0;
-            this.updateTimerDisplay();
-        }
-
-        updateTimerDisplay() {
-            const min = Math.floor(this.timer / 60).toString().padStart(2, '0');
-            const sec = (this.timer % 60).toString().padStart(2, '0');
-            this.dom.timer.textContent = `${min}:${sec}`;
-        }
+            this.dom.leaderboardList.appendChild(row);
+        });
     }
+
+    startTimer() {
+        this.stopTimer();
+        this.updateTimerDisplay();
+        this.timerInterval = setInterval(() => {
+            this.timer++;
+            this.updateTimerDisplay();
+        }, 1000);
+    }
+
+    stopTimer() {
+        if (this.timerInterval) clearInterval(this.timerInterval);
+    }
+
+    resetTimer() {
+        this.stopTimer();
+        this.timer = 0;
+        this.updateTimerDisplay();
+    }
+
+    updateTimerDisplay() {
+        const min = Math.floor(this.timer / 60).toString().padStart(2, '0');
+        const sec = (this.timer % 60).toString().padStart(2, '0');
+        this.dom.timer.textContent = `${min}:${sec}`;
+    }
+}
 
 // Start the game (Standard JS load)
 new SudokuGame();
