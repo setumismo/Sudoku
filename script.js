@@ -455,11 +455,41 @@ class SudokuGame {
                     this.checkGameOver();
                 } else {
                     cell.error = false;
+                    this.clearRelatedNotes(index, num); // Smart Notes: Auto-clear
                     this.checkWin();
                 }
             }
         }
         this.renderBoard();
+    }
+
+    // Smart Note Logic: Clears 'num' from notes in the same Row, Col, and Box
+    clearRelatedNotes(index, num) {
+        const row = Math.floor(index / 9);
+        const col = index % 9;
+        const startRow = row - (row % 3);
+        const startCol = col - (col % 3);
+
+        // 1. Clear Row
+        for (let c = 0; c < 9; c++) this.removeNoteFromCell(row * 9 + c, num);
+
+        // 2. Clear Column
+        for (let r = 0; r < 9; r++) this.removeNoteFromCell(r * 9 + col, num);
+
+        // 3. Clear Box (Quadrant)
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                this.removeNoteFromCell((startRow + i) * 9 + (startCol + j), num);
+            }
+        }
+    }
+
+    removeNoteFromCell(idx, num) {
+        if (idx < 0 || idx >= 81) return;
+        const cell = this.board[idx];
+        if (!cell.fixed && !cell.value && cell.notes.includes(num)) {
+            cell.notes = cell.notes.filter(n => n !== num);
+        }
     }
 
     applyPenalty(seconds) {
