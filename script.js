@@ -1353,21 +1353,8 @@ class SudokuGame {
                 }
             } catch (error) {
                 console.error(error);
-                showCancelButton: true,
-                    confirmButtonText: '¡JUGAR AHORA!',
-                        cancelButtonText: 'Cancelar',
-                            confirmButtonColor: '#48bb78', // Green for go
-                                cancelButtonColor: '#e53e3e',
-                                    reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    this.difficulty = data.difficulty;
-                    this.startNewGame(data.seed, code.toUpperCase().trim());
-                    this.showGame();
-                }
-            });
-        } else {
-            Swal.fire('Error', 'Código inválido o no existe.', 'error');
+                Swal.fire('Error', 'Fallo de conexión.', 'error');
+            }
         }
     }
 
