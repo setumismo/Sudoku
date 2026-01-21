@@ -1183,17 +1183,55 @@ class SudokuGame {
 
     async handleCreateChallenge() {
         // 1. Ask Difficulty
+        let selectedDiff = 'medium';
+
         const { value: finalDiff } = await Swal.fire({
             title: 'Crear Reto Fantasma',
-            input: 'radio',
-            inputOptions: {
-                'easy': 'Fácil 🟢',
-                'medium': 'Medio 🟡',
-                'hard': 'Difícil 🔴'
-            },
-            inputValue: 'medium',
+            html: `
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                    <button id="swal-diff-easy" class="swal-diff-btn" style="border: 2px solid #48bb78; color: #48bb78; background: white; padding: 12px; border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: all 0.2s;">Fácil</button>
+                    <button id="swal-diff-medium" class="swal-diff-btn" style="border: 2px solid #ecc94b; color: #ecc94b; background: white; padding: 12px; border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: all 0.2s;">Medio</button>
+                    <button id="swal-diff-hard" class="swal-diff-btn" style="border: 2px solid #f56565; color: #f56565; background: white; padding: 12px; border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: all 0.2s;">Difícil</button>
+                </div>
+            `,
+            showCancelButton: true,
             confirmButtonText: 'Generar Código',
-            confirmButtonColor: '#4c6ef5'
+            confirmButtonColor: '#4c6ef5',
+            cancelButtonText: 'Cancelar',
+            didOpen: () => {
+                const popup = Swal.getPopup();
+                const btns = {
+                    easy: popup.querySelector('#swal-diff-easy'),
+                    medium: popup.querySelector('#swal-diff-medium'),
+                    hard: popup.querySelector('#swal-diff-hard')
+                };
+
+                const updateSelection = (diff) => {
+                    selectedDiff = diff;
+                    // Reset styles
+                    Object.values(btns).forEach(btn => {
+                        btn.style.background = 'white';
+                        btn.style.color = btn.style.borderColor;
+                        btn.style.transform = 'scale(1)';
+                    });
+                    // Highlight selected
+                    const active = btns[diff];
+                    active.style.background = active.style.borderColor;
+                    active.style.color = 'white';
+                    active.style.transform = 'scale(1.02)';
+                };
+
+                // Initial selection
+                updateSelection('medium');
+
+                // Click listeners
+                btns.easy.onclick = () => updateSelection('easy');
+                btns.medium.onclick = () => updateSelection('medium');
+                btns.hard.onclick = () => updateSelection('hard');
+            },
+            preConfirm: () => {
+                return selectedDiff;
+            }
         });
 
         if (!finalDiff) return;
