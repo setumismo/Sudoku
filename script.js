@@ -188,7 +188,8 @@ class SudokuGame {
                         this.handleFirstLogin();
                     }
                 } catch (e) {
-                    console.error("Error retrieving user:", e);
+                    console.error("Error retrieving user, treating as new:", e);
+                    this.handleFirstLogin();
                 }
             } else {
                 // NO hay usuario (Primera vez)
