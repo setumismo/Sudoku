@@ -1288,203 +1288,210 @@ class SudokuGame {
                 footer: 'Tu amigo jugará el mismo tablero.'
             }).then(() => {
                 this.difficulty = finalDiff;
-            }).then(() => {
-                this.difficulty = finalDiff;
                 this.startNewGame(seed, code);
                 this.showGame();
             });
-            this.showGame();
-        });
 
-    } catch(error) {
-        console.error(error);
-        Swal.fire('Error', 'No se pudo crear el reto. Inténtalo de nuevo.', 'error');
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'No se pudo crear el reto. Inténtalo de nuevo.', 'error');
+        }
     }
-}
 
     async handleJoinChallenge() {
-    const { value: code } = await Swal.fire({
-        title: 'Unirse a Reto',
-        input: 'text',
-        inputLabel: 'Introduce el Código',
-        inputPlaceholder: 'Ej: X9P2',
-        showCancelButton: true,
-        confirmButtonText: 'Buscar y Jugar',
-        confirmButtonColor: '#4c6ef5',
-        inputValidator: (value) => {
-            if (!value) return '¡Escribe el código!';
-        }
-    });
-
-    if (code) {
-        Swal.fire({
-            title: 'Buscando...',
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading()
+        const { value: code } = await Swal.fire({
+            title: 'Unirse a Reto',
+            input: 'text',
+            inputLabel: 'Introduce el Código',
+            inputPlaceholder: 'Ej: X9P2',
+            showCancelButton: true,
+            confirmButtonText: 'Buscar y Jugar',
+            confirmButtonColor: '#4c6ef5',
+            inputValidator: (value) => {
+                if (!value) return '¡Escribe el código!';
+            }
         });
 
-        try {
-            const doc = await db.collection('challenges').doc(code.toUpperCase().trim()).get();
-            if (doc.exists) {
-                const data = doc.data();
-                const creatorName = data.createdByNick || 'un Jugador Anónimo';
+        if (code) {
+            Swal.fire({
+                title: 'Buscando...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
 
-                // LOBBY STEP: Show found challenge details and wait for confirmation
-                Swal.fire({
-                    title: '¡Partida Encontrada!',
-                    html: `
+            try {
+                const doc = await db.collection('challenges').doc(code.toUpperCase().trim()).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    const creatorName = data.createdByNick || 'un Jugador Anónimo';
+
+                    // LOBBY STEP: Show found challenge details and wait for confirmation
+                    Swal.fire({
+                        title: '¡Partida Encontrada!',
+                        html: `
                             <p style="font-size: 1.1em; color: #4a5568;">Te unes al reto de <b>${creatorName}</b></p>
                             <div style="margin-top: 15px; font-weight: bold; color: #2d3748;">
                                 Dificultad: <span style="color:#4c6ef5">${data.difficulty.toUpperCase()}</span>
                             </div>
                         `,
-                    icon: 'success',
-                    showCancelButton: true,
+                        icon: 'success',
+                        showCancelButton: true,
+                        confirmButtonText: '¡JUGAR AHORA!',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#48bb78', // Green for go
+                        cancelButtonColor: '#e53e3e',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.difficulty = data.difficulty;
+                            this.startNewGame(data.seed, code.toUpperCase().trim());
+                            this.showGame();
+                        }
+                    });
+                } else {
+                    Swal.fire('Error', 'Código inválido o no existe.', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                showCancelButton: true,
                     confirmButtonText: '¡JUGAR AHORA!',
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#48bb78', // Green for go
-                    cancelButtonColor: '#e53e3e',
-                    reverseButtons: true
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.difficulty = data.difficulty;
-                        this.difficulty = data.difficulty;
-                        this.startNewGame(data.seed, code.toUpperCase().trim());
-                        this.showGame();
-                        this.showGame();
-                    }
-                });
-            } else {
-                Swal.fire('Error', 'Código inválido o no existe.', 'error');
-            }
-        } catch (error) {
-            console.error(error);
-            Swal.fire('Error', 'Fallo de conexión.', 'error');
+                        cancelButtonText: 'Cancelar',
+                            confirmButtonColor: '#48bb78', // Green for go
+                                cancelButtonColor: '#e53e3e',
+                                    reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.difficulty = data.difficulty;
+                    this.startNewGame(data.seed, code.toUpperCase().trim());
+                    this.showGame();
+                }
+            });
+        } else {
+            Swal.fire('Error', 'Código inválido o no existe.', 'error');
         }
     }
-}
 
-generateChallengeCode() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let result = '';
-    for (let i = 0; i < 4; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    generateChallengeCode() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let result = '';
+        for (let i = 0; i < 4; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
     }
-    return result;
-}
 
     // --- CHALLENGE LEADERBOARD METHODS ---
 
     async registerParticipant() {
-    if (!this.currentChallengeCode || !this.currentUserNick) return;
-    try {
-        const docRef = await db.collection('scores').add({
-            challengeId: this.currentChallengeCode,
-            nick: this.currentUserNick,
-            status: 'playing',
-            time: null,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        this.currentScoreId = docRef.id;
-        console.log("Participant registered:", this.currentScoreId);
-    } catch (e) {
-        console.error("Error registering participant:", e);
+        if (!this.currentChallengeCode || !this.currentUserNick) return;
+        try {
+            const docRef = await db.collection('scores').add({
+                challengeId: this.currentChallengeCode,
+                nick: this.currentUserNick,
+                status: 'playing',
+                time: null,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            this.currentScoreId = docRef.id;
+            console.log("Participant registered:", this.currentScoreId);
+        } catch (e) {
+            console.error("Error registering participant:", e);
+        }
     }
-}
 
     async updateChallengeScore() {
-    if (!this.currentScoreId) return;
-    try {
-        await db.collection('scores').doc(this.currentScoreId).update({
-            status: 'finished',
-            time: this.timer,
-            timeStr: this.dom.timer.textContent,
-            finishedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        this.showChallengeLeaderboard();
-    } catch (e) {
-        console.error("Error updating challenge score:", e);
-        Swal.fire('Error', 'No se pudo guardar la puntuación', 'error');
+        if (!this.currentScoreId) return;
+        try {
+            await db.collection('scores').doc(this.currentScoreId).update({
+                status: 'finished',
+                time: this.timer,
+                timeStr: this.dom.timer.textContent,
+                finishedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            this.showChallengeLeaderboard();
+        } catch (e) {
+            console.error("Error updating challenge score:", e);
+            Swal.fire('Error', 'No se pudo guardar la puntuación', 'error');
+        }
     }
-}
 
     async showChallengeLeaderboard() {
-    if (!this.currentChallengeCode) return;
+        if (!this.currentChallengeCode) return;
 
-    const fetchAndRender = async () => {
-        // Show loading inside SweetAlert if possible, or just wait
-        try {
-            const snapshot = await db.collection('scores')
-                .where('challengeId', '==', this.currentChallengeCode)
-                .get();
+        const fetchAndRender = async () => {
+            // Show loading inside SweetAlert if possible, or just wait
+            try {
+                const snapshot = await db.collection('scores')
+                    .where('challengeId', '==', this.currentChallengeCode)
+                    .get();
 
-            const participants = [];
-            snapshot.forEach(doc => participants.push(doc.data()));
+                const participants = [];
+                snapshot.forEach(doc => participants.push(doc.data()));
 
-            const finished = participants.filter(p => p.status === 'finished').sort((a, b) => a.time - b.time);
-            const playing = participants.filter(p => p.status === 'playing');
+                const finished = participants.filter(p => p.status === 'finished').sort((a, b) => a.time - b.time);
+                const playing = participants.filter(p => p.status === 'playing');
 
-            let html = '<div style="display:flex; flex-direction:column; gap:15px; text-align:left;">';
+                let html = '<div style="display:flex; flex-direction:column; gap:15px; text-align:left;">';
 
-            // Finished Section
-            html += '<div><h3 style="color:#38a169; border-bottom:2px solid #38a169; padding-bottom:5px; margin-bottom:10px;">🏆 Terminados</h3>';
-            if (finished.length === 0) html += '<p style="color:#aaa; font-style:italic;">Nadie ha terminado aún.</p>';
-            else {
-                finished.forEach((p, i) => {
-                    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
-                    html += `
+                // Finished Section
+                html += '<div><h3 style="color:#38a169; border-bottom:2px solid #38a169; padding-bottom:5px; margin-bottom:10px;">🏆 Terminados</h3>';
+                if (finished.length === 0) html += '<p style="color:#aaa; font-style:italic;">Nadie ha terminado aún.</p>';
+                else {
+                    finished.forEach((p, i) => {
+                        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+                        html += `
                             <div style="display:flex; justify-content:space-between; padding:8px; background:#f7fafc; margin-bottom:5px; border-radius:8px; align-items:center;">
                                 <div><span style="font-size:1.2em; margin-right:8px;">${medal}</span> <b>${p.nick}</b></div>
                                 <span style="font-family:monospace; font-weight:bold; color:#4c6ef5;">${p.timeStr || '--:--'}</span>
                             </div>`;
-                });
-            }
-            html += '</div>';
+                    });
+                }
+                html += '</div>';
 
-            // Playing Section
-            html += '<div><h3 style="color:#ecc94b; border-bottom:2px solid #ecc94b; padding-bottom:5px; margin-bottom:10px;">⏳ Jugando</h3>';
-            if (playing.length === 0) html += '<p style="color:#aaa; font-style:italic;">Nadie jugando ahora.</p>';
-            else {
-                playing.forEach(p => {
-                    html += `
+                // Playing Section
+                html += '<div><h3 style="color:#ecc94b; border-bottom:2px solid #ecc94b; padding-bottom:5px; margin-bottom:10px;">⏳ Jugando</h3>';
+                if (playing.length === 0) html += '<p style="color:#aaa; font-style:italic;">Nadie jugando ahora.</p>';
+                else {
+                    playing.forEach(p => {
+                        html += `
                             <div style="padding:8px; background:#fff; border:1px solid #e2e8f0; margin-bottom:5px; border-radius:8px; color:#718096;">
                                 🏃‍♂️ <b>${p.nick}</b>
                             </div>`;
-                });
+                    });
+                }
+                html += '</div></div>';
+
+                return html;
+
+            } catch (e) {
+                console.error(e);
+                return '<p style="color:red;">Error cargando datos.</p>';
             }
-            html += '</div></div>';
+        };
 
-            return html;
+        const htmlContent = await fetchAndRender();
 
-        } catch (e) {
-            console.error(e);
-            return '<p style="color:red;">Error cargando datos.</p>';
-        }
-    };
-
-    const htmlContent = await fetchAndRender();
-
-    Swal.fire({
-        title: '📊 Clasificación del Reto',
-        html: htmlContent,
-        showDenyButton: true,
-        confirmButtonText: '🔄 Actualizar',
-        denyButtonText: 'Cerrar',
-        confirmButtonColor: '#4c6ef5',
-        denyButtonColor: '#718096',
-        allowOutsideClick: false,
-        preConfirm: () => {
-            return false; // Prevent closing on confirm (Refresh)
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Recursive call to refresh
-            this.showChallengeLeaderboard();
-        } else if (result.isDenied) {
-            // Close actions if needed
-        }
-    });
-}
+        Swal.fire({
+            title: '📊 Clasificación del Reto',
+            html: htmlContent,
+            showDenyButton: true,
+            confirmButtonText: '🔄 Actualizar',
+            denyButtonText: 'Cerrar',
+            confirmButtonColor: '#4c6ef5',
+            denyButtonColor: '#718096',
+            allowOutsideClick: false,
+            preConfirm: () => {
+                return false; // Prevent closing on confirm (Refresh)
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Recursive call to refresh
+                this.showChallengeLeaderboard();
+            } else if (result.isDenied) {
+                // Close actions if needed
+            }
+        });
+    }
 }
 
 // Start the game (Standard JS load)
