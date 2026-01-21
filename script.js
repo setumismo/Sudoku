@@ -1264,7 +1264,6 @@ class SudokuGame {
                 const doc = await db.collection('challenges').doc(code.toUpperCase().trim()).get();
                 if (doc.exists) {
                     const data = doc.data();
-                    const data = doc.data();
 
                     // LOBBY STEP: Show found challenge details and wait for confirmation
                     Swal.fire({
