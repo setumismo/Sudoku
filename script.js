@@ -11,9 +11,11 @@ const firebaseConfig = {
 
 // Initialize Firebase (Compat Mode)
 let db;
+let auth;
 try {
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
+    auth = firebase.auth();
 
     // Enable Offline Persistence
     db.enablePersistence()
@@ -135,8 +137,10 @@ class SudokuGame {
         this.difficulty = 'easy';
         this.timer = 0;
         this.timerInterval = null;
+        this.timerInterval = null;
         this.isGameOver = false;
         this.soundManager = new SoundManager();
+        this.currentUserNick = 'Anónimo'; // New: Track user nick
 
         this.dom = {
             board: document.getElementById('sudoku-board'),
@@ -173,7 +177,15 @@ class SudokuGame {
             leaderboardList: document.querySelector('.leaderboard-list'),
             tabBtns: document.querySelectorAll('.tab-btn'),
 
-            appContainer: document.querySelector('.app-container')
+            tabBtns: document.querySelectorAll('.tab-btn'),
+
+            appContainer: document.querySelector('.app-container'),
+
+            // Login Elements
+            loginModal: document.getElementById('login-modal'),
+            loginInput: document.getElementById('login-nick'),
+            loginBtn: document.getElementById('btn-login'),
+            userDisplay: document.getElementById('user-display')
         };
 
         this.init();
@@ -182,6 +194,7 @@ class SudokuGame {
     init() {
         this.setupEventListeners();
         this.loadTheme();
+        this.checkAuth(); // Check auth on startup
         this.startNewGame();
 
         // Audio Init
@@ -278,11 +291,25 @@ class SudokuGame {
         });
 
         this.dom.saveScoreBtn.addEventListener('click', () => {
-            const name = this.dom.playerName.value.trim() || 'Anónimo';
+            // Use current user nick if available, otherwise input or Anónimo
+            const inputName = this.dom.playerName.value.trim();
+            const name = inputName || this.currentUserNick || 'Anónimo';
             this.saveScore(name);
             this.dom.victoryModal.classList.add('hidden');
             this.showLeaderboard(this.difficulty);
         });
+
+        // Login Button Listener
+        if (this.dom.loginBtn) {
+            this.dom.loginBtn.addEventListener('click', () => {
+                const nick = this.dom.loginInput.value.trim();
+                if (nick) {
+                    this.handleLogin(nick);
+                } else {
+                    alert("Por favor, escribe un nick.");
+                }
+            });
+        }
 
         // Global Deselect
         document.addEventListener('click', (e) => {
@@ -817,6 +844,68 @@ class SudokuGame {
 
     // --- Leaderboard Logic ---
 
+    // --- Auth Logic ---
+
+    checkAuth() {
+        if (!auth) return;
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                console.log("Usuario autenticado:", user.uid);
+                // Get Nick
+                if (db) {
+                    try {
+                        const doc = await db.collection('users').doc(user.uid).get();
+                        if (doc.exists) {
+                            const data = doc.data();
+                            this.currentUserNick = data.nick;
+                            this.updateUserDisplay(this.currentUserNick);
+                        }
+                    } catch (e) {
+                        console.error("Error fetching user data:", e);
+                    }
+                }
+                if (this.dom.loginModal) this.dom.loginModal.classList.add('hidden');
+            } else {
+                console.log("No hay usuario. Mostrando login.");
+                if (this.dom.loginModal) this.dom.loginModal.classList.remove('hidden');
+            }
+        });
+    }
+
+    async handleLogin(nick) {
+        if (!auth) return;
+        try {
+            const result = await auth.signInAnonymously();
+            const user = result.user;
+
+            // Create User Doc
+            if (db) {
+                await db.collection('users').doc(user.uid).set({
+                    uid: user.uid,
+                    nick: nick,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+
+            this.currentUserNick = nick;
+            this.updateUserDisplay(nick);
+            if (this.dom.loginModal) this.dom.loginModal.classList.add('hidden');
+
+        } catch (error) {
+            console.error("Error en login:", error);
+            alert("Error al iniciar sesión: " + error.message);
+        }
+    }
+
+    updateUserDisplay(nick) {
+        if (this.dom.userDisplay) {
+            this.dom.userDisplay.textContent = `Hola, ${nick}`;
+        }
+        if (this.dom.playerName) {
+            this.dom.playerName.value = nick; // Pre-fill in victory modal
+        }
+    }
+
     async saveScore(name) {
         const timeStr = this.dom.timer.textContent;
         const seconds = this.timer;
@@ -835,13 +924,20 @@ class SudokuGame {
         // 2. Global Save (Firebase Compat)
         if (db) {
             try {
-                await db.collection("scores").add({
+                const scoreData = {
                     name: name,
                     timeStr: timeStr,
                     seconds: seconds,
                     difficulty: this.difficulty,
                     date: date
-                });
+                };
+
+                // Add UID if pending
+                if (auth && auth.currentUser) {
+                    scoreData.uid = auth.currentUser.uid;
+                }
+
+                await db.collection("scores").add(scoreData);
                 console.log("Score saved to Firebase");
             } catch (e) {
                 console.error("Error adding document: ", e);
