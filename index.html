@@ -96,15 +96,6 @@
                     </button>
                 </div>
                 <div class="header-controls">
-                    <!-- Pause Button -->
-                    <button id="btn-pause" class="icon-btn" aria-label="Pause Game">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <rect x="6" y="4" width="4" height="16"></rect>
-                            <rect x="14" y="4" width="4" height="16"></rect>
-                        </svg>
-                    </button>
-
                     <!-- Difficulty Select -->
                     <select id="difficulty-select" class="difficulty-select" aria-label="Select Difficulty">
                         <option value="easy">Fácil</option>
@@ -140,6 +131,13 @@
 
             <!-- Action Controls (Original Layout) -->
             <div class="controls-area">
+                <button class="control-btn" id="btn-pause" title="Pausar">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                    <span>Pausa</span>
+                </button>
                 <button class="control-btn" id="btn-undo" title="Deshacer">
                     <svg viewBox="0 0 24 24" width="24" height="24">
                         <path fill="currentColor"
