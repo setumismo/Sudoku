@@ -111,6 +111,31 @@ body {
 }
 
 /* Dark Mode Logo Handling - Global */
+/* Logo Handling */
+mix-blend-mode: normal;
+/* Reset default */
+border-radius: 12px;
+/* Smooth corners */
+}
+
+/* Glass Home Logo Handling */
+#home-view .logo-img,
+#home-view .logo-large {
+    mix-blend-mode: screen;
+    /* Blend black bg if present, or multiply for white */
+    /* Since we have a white bg logo on dark gradient, multiply works best to hide white, 
+       BUT black text will be dark. 
+       Better approach: user provided logo has white BG. 
+       Let's use a trick: mix-blend-mode: multiply; filter: contrast(1.2); 
+       However, dark text on dark gradient is bad.
+       Let's rely on the user's generated logo if they want, but here we just try to make it look decent.
+       Let's try border-radius and box-shadow to make it look like an icon.
+    */
+    mix-blend-mode: normal;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
 [data-theme="dark"] .logo-img {
     filter: invert(1) hue-rotate(180deg);
     mix-blend-mode: screen;
@@ -771,8 +796,14 @@ body {
 }
 
 .highlight-nick {
-    color: var(--accent);
-    font-weight: 700;
+    color: #ffffff;
+    font-weight: 800;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.user-greeting {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
 }
 
 .home-menu {
@@ -784,13 +815,27 @@ body {
     padding: 0 10px;
 }
 
+/* Glass Section Container */
+.menu-section {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+}
+
 .section-title {
-    font-size: 1rem;
-    color: var(--text-secondary);
-    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.95);
+    /* White text */
+    margin-bottom: 12px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
+    letter-spacing: 1px;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .menu-grid,
@@ -808,8 +853,9 @@ body {
 }
 
 .menu-btn {
-    background: var(--bg-page);
-    border: 1px solid var(--cell-border);
+    background: #ffffff;
+    /* White "Elevated" Button */
+    border: none;
     border-radius: 12px;
     padding: 15px 5px;
     display: flex;
@@ -818,8 +864,14 @@ body {
     justify-content: center;
     gap: 8px;
     cursor: pointer;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
     color: var(--text-primary);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.menu-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .menu-btn.wide {
