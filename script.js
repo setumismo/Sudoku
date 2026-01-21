@@ -564,7 +564,7 @@ class SudokuGame {
             if (grid[i] === 0) {
                 let row = Math.floor(i / 9);
                 let col = i % 9;
-                const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
+                const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => this.random() - 0.5);
                 for (let num of nums) {
                     if (this.isSafe(grid, row, col, num)) {
                         grid[i] = num;
@@ -580,12 +580,12 @@ class SudokuGame {
 
     removeNumbers(grid, attempts) {
         while (attempts > 0) {
-            let row = Math.floor(Math.random() * 9);
-            let col = Math.floor(Math.random() * 9);
+            let row = Math.floor(this.random() * 9);
+            let col = Math.floor(this.random() * 9);
             let idx = row * 9 + col;
             while (grid[idx] === 0) {
-                row = Math.floor(Math.random() * 9);
-                col = Math.floor(Math.random() * 9);
+                row = Math.floor(this.random() * 9);
+                col = Math.floor(this.random() * 9);
                 idx = row * 9 + col;
             }
             grid[idx] = 0;
