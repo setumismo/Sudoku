@@ -1037,7 +1037,7 @@ class SudokuGame {
 
     updateUserDisplay() {
         if (this.dom.userDisplay && this.currentUserNick) {
-            this.dom.userDisplay.textContent = `Hola, ${this.currentUserNick}`;
+            this.dom.userDisplay.textContent = this.currentUserNick;
         }
         if (this.dom.playerName) {
             this.dom.playerName.value = this.currentUserNick;
