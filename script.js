@@ -159,7 +159,9 @@ class SudokuGame {
             // HOME Elements
             userDisplay: document.getElementById('user-nick-display'),
             freePlayBtn: document.getElementById('btn-free-play'),
-            leaderboardHomeBtn: document.getElementById('leaderboard-home'),
+            leaderboardHomeBtn: document.getElementById('leaderboard-home'), // NOTE: This ID was likely 'leaderboard-home' in footer, checking if I replaced it or if I should use the new one.
+            // Actually, I added id="btn-home-leaderboard" in HTML just now. Let's use that.
+            btnHomeLeaderboard: document.getElementById('btn-home-leaderboard'),
             difficultyButtons: document.querySelectorAll('.menu-btn[data-action="start"]'),
 
             // GAME Elements (New Header)
@@ -175,11 +177,11 @@ class SudokuGame {
             level: document.getElementById('level-display'),
 
             // Old Controls kept in Game View
-            themeToggle: document.getElementById('theme-toggle'), // In footer now
+            // themeToggle: Removed from Game Header
             themeToggleHome: document.getElementById('theme-toggle-home'), // Home footer
 
             soundToggle: document.getElementById('sound-toggle'), // In game header
-            leaderboardBtn: document.getElementById('btn-leaderboard'), // In Game Header
+            // leaderboardBtn: Removed from Game Header
             difficultySelect: document.getElementById('difficulty-select'), // In Game Header
 
             undoBtn: document.getElementById('btn-undo'),
@@ -239,7 +241,8 @@ class SudokuGame {
 
     updateThemeIcons() {
         const isDark = document.body.getAttribute('data-theme') === 'dark';
-        [this.dom.themeToggle, this.dom.themeToggleHome].forEach(btn => {
+        // Only home toggle exists now
+        [this.dom.themeToggleHome].forEach(btn => {
             if (btn) {
                 const sun = btn.querySelector('.sun-icon');
                 const moon = btn.querySelector('.moon-icon');
@@ -276,9 +279,15 @@ class SudokuGame {
             });
         }
 
-        // Leaderboard from Home
-        if (this.dom.leaderboardHomeBtn) {
-            this.dom.leaderboardHomeBtn.addEventListener('click', () => this.showLeaderboard());
+        // Leaderboard from Home (Footer Icon)
+        // Removed leaderboardHomeBtn listener as it's replaced by btnHomeLeaderboard
+        // if (this.dom.leaderboardHomeBtn) {
+        //     this.dom.leaderboardHomeBtn.addEventListener('click', () => this.showLeaderboard());
+        // }
+
+        // Leaderboard from Home (New Main Button)
+        if (this.dom.btnHomeLeaderboard) {
+            this.dom.btnHomeLeaderboard.addEventListener('click', () => this.showLeaderboard());
         }
 
         // Theme Toggle (Home footer)
@@ -330,12 +339,13 @@ class SudokuGame {
         });
 
         // Common
-        if (this.dom.themeToggle) {
-            this.dom.themeToggle.addEventListener('click', () => {
-                this.toggleTheme();
-                this.updateThemeIcons();
-            });
-        }
+        /* themeToggle removed from game header */
+        // if (this.dom.themeToggle) {
+        //     this.dom.themeToggle.addEventListener('click', () => {
+        //         this.toggleTheme();
+        //         this.updateThemeIcons();
+        //     });
+        // }
 
         // ... (Existing Game Controls: Undo, Erase, Notes, Hint, Numpad) ...
         this.dom.undoBtn.addEventListener('click', (e) => { e.stopPropagation(); this.undo(); });
@@ -360,10 +370,10 @@ class SudokuGame {
             });
         }
 
-        // Leaderboard within Game
-        if (this.dom.leaderboardBtn) {
-            this.dom.leaderboardBtn.addEventListener('click', () => this.showLeaderboard());
-        }
+        // Leaderboard within Game - REMOVED
+        // if (this.dom.leaderboardBtn) {
+        //     this.dom.leaderboardBtn.addEventListener('click', () => this.showLeaderboard());
+        // }
 
         // Modals
         this.dom.restartBtn.addEventListener('click', () => { this.dom.modal.classList.add('hidden'); this.startNewGame(); });

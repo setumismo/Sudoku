@@ -60,14 +60,20 @@
 
                 <!-- Sección 3: Práctica -->
                 <section class="menu-section">
-                    <button class="menu-btn wide" id="btn-free-play">
-                        🎮 Juego Libre
-                    </button>
+                    <div class="menu-row">
+                        <button class="menu-btn wide" id="btn-free-play" data-action="free-play">
+                            <span class="btn-icon">🎮</span>
+                            <span class="btn-text">Juego Libre</span>
+                        </button>
+                        <button class="menu-btn wide" id="btn-home-leaderboard" data-action="leaderboard">
+                            <span class="btn-icon">🏆</span>
+                            <span class="btn-text">Ranking</span>
+                        </button>
+                    </div>
                 </section>
 
                 <div class="home-footer">
                     <button id="theme-toggle-home" class="icon-btn-large">🌓 Tema</button>
-                    <button id="leaderboard-home" class="icon-btn-large">🏆 Ranking</button>
                 </div>
             </main>
         </div>
@@ -88,16 +94,11 @@
                 </div>
                 <div class="header-controls">
                     <!-- Pause Button -->
-                    <button id="btn-pause" class="icon-btn" title="Pausar">
-                        <svg viewBox="0 0 24 24" width="24" height="24">
-                            <path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-                        </svg>
-                    </button>
-
-                    <button id="btn-leaderboard" class="icon-btn" aria-label="Leaderboard" title="Ranking">
-                        <svg viewBox="0 0 24 24" width="24" height="24">
-                            <path fill="currentColor"
-                                d="M16 11V3H8v6H2v12h20V11h-6zm-6-6h4v14h-4V5zm-6 6h4v8H4v-8zm16 8h-4v-6h4v6z" />
+                    <button id="btn-pause" class="icon-btn" aria-label="Pause Game">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="6" y="4" width="4" height="16"></rect>
+                            <rect x="14" y="4" width="4" height="16"></rect>
                         </svg>
                     </button>
 
