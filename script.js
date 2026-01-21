@@ -1,8 +1,4 @@
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp, doc, getDoc, setDoc, enableIndexedDbPersistence, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+// Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyDy02OC8VwNPEu4-E8if0SgX4ApC48xpcI",
     authDomain: "sudoku-web-1af44.firebaseapp.com",
@@ -13,21 +9,28 @@ const firebaseConfig = {
     measurementId: "G-C0Y9EBJN2L"
 };
 
-// Inicializar
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+// Initialize Firebase (Compat Mode)
+let app, auth, db;
+try {
+    app = firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    db = firebase.firestore();
 
-// Enable Persistence
-enableIndexedDbPersistence(db).catch((err) => {
-    if (err.code == 'failed-precondition') {
-        console.log('Persistence failed: Multiple tabs open');
-    } else if (err.code == 'unimplemented') {
-        console.log('Persistence not supported');
-    }
-});
+    // Enable Offline Persistence
+    db.enablePersistence().catch((err) => {
+        if (err.code == 'failed-precondition') {
+            console.log('Persistence failed: Multiple tabs open');
+        } else if (err.code == 'unimplemented') {
+            console.log('Persistence not supported');
+        }
+    });
 
-let currentUserNick = ""; // Global variable for nick
+} catch (e) {
+    console.error("Firebase Init Error:", e);
+    alert("Error inicializando Firebase. Revisa la consola.");
+}
+
+let currentUserNick = ""; // Global variable
 
 // --- Sound Manager ---
 class SoundManager {
@@ -157,7 +160,7 @@ class SudokuGame {
     init() {
         this.setupEventListeners();
         this.loadTheme();
-        this.initAuth(); // START AUTH FLOW
+        this.initAuth();
         this.startNewGame();
 
         const initAudio = () => {
@@ -171,73 +174,75 @@ class SudokuGame {
         document.addEventListener('keydown', initAudio);
     }
 
-    // --- AUTH LOGIN LOGIC ---
+    // --- AUTH LOGIN LOGIC (COMPAT MODE) ---
     initAuth() {
-        onAuthStateChanged(auth, async (user) => {
+        if (!auth) return;
+        auth.onAuthStateChanged((user) => {
             if (user) {
-                // YA hay usuario (Recarga)
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        currentUserNick = userDoc.data().nick;
-                        console.log("Bienvenido de nuevo: " + currentUserNick);
+                // Check if user has profile data
+                db.collection('users').doc(user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        currentUserNick = data.nick;
+                        console.log("Welcome back:", currentUserNick);
                         this.updateUserDisplay();
                     } else {
-                        // Phantom user (Auth exists, but Data missing). Treat as new.
-                        console.warn("User exists but profile missing. Re-initializing.");
+                        console.warn("User auth exists, but no profile. Prompting.");
                         this.handleFirstLogin();
                     }
-                } catch (e) {
-                    console.error("Error retrieving user, treating as new:", e);
+                }).catch((error) => {
+                    console.error("Error getting user doc:", error);
+                    // Fallback to prompt on error
                     this.handleFirstLogin();
-                }
+                });
             } else {
-                // NO hay usuario (Primera vez)
                 this.handleFirstLogin();
             }
         });
     }
 
     async handleFirstLogin() {
-        // Simplified Login: Just ask for name and sign in. No unique check.
-        const { value: nickname } = await Swal.fire({
-            title: 'Bienvenido a Sudoku',
-            text: 'Elige un nombre para guardar tu progreso',
-            input: 'text',
-            inputPlaceholder: 'Tu Nick',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            confirmButtonText: 'Jugar',
-            inputValidator: (value) => {
-                if (!value) return '¡Necesitas escribir un nombre!';
-                if (value.length > 12) return 'Máximo 12 caracteres';
-            }
-        });
+        // Simple Loop: Ask nick until provided
+        let nickname = "";
+        while (!nickname) {
+            const result = await Swal.fire({
+                title: 'Bienvenido a Sudoku',
+                text: 'Elige un nombre para guardar tu progreso',
+                input: 'text',
+                inputPlaceholder: 'Tu Nick',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                confirmButtonText: 'Jugar',
+                inputValidator: (value) => {
+                    if (!value) return '¡Necesitas escribir un nombre!';
+                    if (value.length > 12) return 'Máximo 12 caracteres';
+                }
+            });
+            nickname = result.value;
+        }
 
-        if (nickname) {
-            try {
-                const userCredential = await signInAnonymously(auth);
-                const user = userCredential.user;
+        // Login Anonymously & Save
+        try {
+            const userCredential = await auth.signInAnonymously();
+            const user = userCredential.user;
 
-                // Create/Update User Doc
-                await setDoc(doc(db, "users", user.uid), {
-                    uid: user.uid,
-                    nick: nickname,
-                    createdAt: serverTimestamp()
-                });
+            await db.collection('users').doc(user.uid).set({
+                uid: user.uid,
+                nick: nickname,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
 
-                currentUserNick = nickname;
-                this.updateUserDisplay();
+            currentUserNick = nickname;
+            this.updateUserDisplay();
 
-                const Toast = Swal.mixin({
-                    toast: true, position: 'top-end', showConfirmButton: false, timer: 3000
-                });
-                Toast.fire({ icon: 'success', title: `Bienvenido, ${nickname}` });
+            const Toast = Swal.mixin({
+                toast: true, position: 'top-end', showConfirmButton: false, timer: 3000
+            });
+            Toast.fire({ icon: 'success', title: `Bienvenido, ${nickname}` });
 
-            } catch (error) {
-                console.error("Login Error:", error);
-                Swal.fire("Error", "Fallo en la autenticación.", "error");
-            }
+        } catch (error) {
+            console.error("Login fail:", error);
+            Swal.fire("Error", "No se pudo iniciar sesión: " + error.message, "error");
         }
     }
 
@@ -254,7 +259,6 @@ class SudokuGame {
     // --- GAME LOGIC ---
 
     setupEventListeners() {
-        // ... (Same event listeners as before) ...
         this.dom.soundToggle?.addEventListener('click', (e) => {
             e.stopPropagation();
             const isEnabled = this.soundManager.toggle();
@@ -605,7 +609,7 @@ class SudokuGame {
         }
     }
 
-    // --- FIREBASE SCORE SAVING ---
+    // --- FIREBASE SCORE SAVING (COMPAT) ---
     async saveScore(name) {
         const timeStr = this.dom.timer.textContent;
         const seconds = this.timer;
@@ -619,22 +623,25 @@ class SudokuGame {
         localStorage.setItem('sudokuResults', JSON.stringify(localScores));
 
         // Global
-        try {
-            await addDoc(collection(db, "scores"), {
-                name: name,
-                timeStr: timeStr,
-                seconds: seconds,
-                difficulty: this.difficulty,
-                date: date,
-                uid: auth.currentUser ? auth.currentUser.uid : null,
-                nick: currentUserNick
-            });
-            const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
-            Toast.fire({ icon: 'success', title: 'Puntuación guardada' });
-        } catch (e) {
-            console.error("Score Save Error:", e);
-            const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
-            Toast.fire({ icon: 'info', title: 'Guardado local (Offline)' });
+        if (db) {
+            try {
+                const scoreData = {
+                    name: name,
+                    timeStr: timeStr,
+                    seconds: seconds,
+                    difficulty: this.difficulty,
+                    date: date,
+                    nick: currentUserNick
+                };
+                if (auth && auth.currentUser) scoreData.uid = auth.currentUser.uid;
+                await db.collection("scores").add(scoreData);
+                const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+                Toast.fire({ icon: 'success', title: 'Puntuación guardada' });
+            } catch (e) {
+                console.error("Firebase save failed:", e);
+                const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+                Toast.fire({ icon: 'info', title: 'Guardado local (Offline)' });
+            }
         }
     }
 
@@ -650,10 +657,14 @@ class SudokuGame {
     async renderLeaderboardScores(difficulty) {
         this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px;">Cargando...</div>';
         try {
-            const q = query(collection(db, "scores"), where("difficulty", "==", difficulty), limit(100)); // Client sort
-            const querySnapshot = await getDocs(q);
+            if (!db) throw new Error("No DB");
+            const snapshot = await db.collection("scores")
+                .where("difficulty", "==", difficulty)
+                .limit(100)
+                .get();
+
             let list = [];
-            querySnapshot.forEach(doc => list.push(doc.data()));
+            snapshot.forEach(doc => list.push(doc.data()));
             list.sort((a, b) => a.seconds - b.seconds);
             this.updateLeaderboardUI(list.slice(0, 50));
         } catch (error) {
@@ -670,7 +681,7 @@ class SudokuGame {
         list.forEach((score, index) => {
             const row = document.createElement('div');
             row.className = 'score-row';
-            if (auth.currentUser && score.uid === auth.currentUser.uid) row.style.backgroundColor = 'rgba(76, 175, 80, 0.15)';
+            if (auth && auth.currentUser && score.uid === auth.currentUser.uid) row.style.backgroundColor = 'rgba(76, 175, 80, 0.15)';
 
             const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
             row.innerHTML = `
