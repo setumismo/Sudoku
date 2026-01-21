@@ -1467,9 +1467,6 @@ class SudokuGame {
             confirmButtonColor: '#4c6ef5',
             denyButtonColor: '#718096',
             allowOutsideClick: false,
-            preConfirm: () => {
-                return false; // Prevent closing on confirm (Refresh)
-            }
         }).then((result) => {
             if (result.isConfirmed) {
                 // Recursive call to refresh
