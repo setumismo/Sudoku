@@ -442,7 +442,22 @@ class SudokuGame {
         // Initial visual update handled by init -> updateThemeIcons/showHome
     }
 
-    startNewGame() {
+    // --- PRNG (Pseudo-Random Number Generator) ---
+    seededRandom(a) {
+        return function () {
+            var t = a += 0x6D2B79F5;
+            t = Math.imul(t ^ t >>> 15, t | 1);
+            t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        }
+    }
+
+    random() {
+        if (this.prng) return this.prng();
+        return Math.random();
+    }
+
+    startNewGame(seed = null) {
         this.isGameOver = false;
         this.mistakes = 0;
         this.updateMistakesDisplay();
@@ -451,8 +466,25 @@ class SudokuGame {
         this.selectedCellIndex = -1;
         this.selectedNumber = null;
         this.notesMode = false;
-        this.dom.notesBtn.querySelector('.toggle-indicator').textContent = 'OFF';
-        this.dom.notesBtn.classList.remove('active');
+        if (this.dom.notesBtn) {
+            this.dom.notesBtn.querySelector('.toggle-indicator').textContent = 'OFF';
+            this.dom.notesBtn.classList.remove('active');
+        }
+
+        // Handle Seed
+        this.currentSeed = seed;
+        if (seed) {
+            console.log(`Starting seeded game: ${seed}`);
+            let seedNum = 0;
+            for (let i = 0; i < seed.length; i++) {
+                seedNum = ((seedNum << 5) - seedNum) + seed.charCodeAt(i);
+                seedNum |= 0;
+            }
+            this.prng = this.seededRandom(seedNum);
+        } else {
+            console.log('Starting random game');
+            this.prng = null;
+        }
 
         // Sync UI select with internal state
         if (this.dom.difficultySelect) {
@@ -491,7 +523,7 @@ class SudokuGame {
         let num;
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
-                do { num = Math.floor(Math.random() * 9) + 1; } while (!this.isSafeInBox(grid, row, col, num));
+                do { num = Math.floor(this.random() * 9) + 1; } while (!this.isSafeInBox(grid, row, col, num));
                 grid[(row + i) * 9 + (col + j)] = num;
             }
         }
@@ -1128,6 +1160,125 @@ class SudokuGame {
         const min = Math.floor(this.timer / 60).toString().padStart(2, '0');
         const sec = (this.timer % 60).toString().padStart(2, '0');
         this.dom.timer.textContent = `${min}:${sec}`;
+    }
+
+    // --- CHALLENGE LOGIC ---
+
+    async handleCreateChallenge() {
+        // 1. Ask Difficulty
+        const { value: finalDiff } = await Swal.fire({
+            title: 'Crear Reto Fantasma',
+            input: 'radio',
+            inputOptions: {
+                'easy': 'Fácil 🟢',
+                'medium': 'Medio 🟡',
+                'hard': 'Difícil 🔴'
+            },
+            inputValue: 'medium',
+            confirmButtonText: 'Generar Código',
+            confirmButtonColor: '#4c6ef5'
+        });
+
+        if (!finalDiff) return;
+
+        // 2. Generate Code & Seed
+        const code = this.generateChallengeCode();
+        const seed = Math.random().toString(36).substring(2, 15);
+        const userId = (firebase.auth().currentUser && firebase.auth().currentUser.uid) || 'anon';
+
+        Swal.fire({
+            title: 'Generando Reto...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            // 3. Save to Firestore
+            await db.collection('challenges').doc(code).set({
+                code: code,
+                seed: seed,
+                difficulty: finalDiff,
+                createdBy: userId,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // 4. Show Code
+            Swal.fire({
+                title: '¡Reto Creado!',
+                html: `
+                    <p style="margin-bottom:10px;">Comparte este código:</p>
+                    <div style="background:#f0f2f5; padding:15px; border-radius:10px; font-size:2rem; font-weight:800; letter-spacing:5px; color:#4c6ef5; border: 2px dashed #4c6ef5;">
+                        ${code}
+                    </div>
+                `,
+                icon: 'success',
+                confirmButtonText: 'Empezar Partida',
+                footer: 'Tu amigo jugará el mismo tablero.'
+            }).then(() => {
+                this.difficulty = finalDiff;
+                this.startNewGame(seed);
+                this.showGame();
+            });
+
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'No se pudo crear el reto. Inténtalo de nuevo.', 'error');
+        }
+    }
+
+    async handleJoinChallenge() {
+        const { value: code } = await Swal.fire({
+            title: 'Unirse a Reto',
+            input: 'text',
+            inputLabel: 'Introduce el Código',
+            inputPlaceholder: 'Ej: X9P2',
+            showCancelButton: true,
+            confirmButtonText: 'Buscar y Jugar',
+            confirmButtonColor: '#4c6ef5',
+            inputValidator: (value) => {
+                if (!value) return '¡Escribe el código!';
+            }
+        });
+
+        if (code) {
+            Swal.fire({
+                title: 'Buscando...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const doc = await db.collection('challenges').doc(code.toUpperCase().trim()).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    Swal.fire({
+                        title: '¡Encontrado!',
+                        text: `Dificultad: ${data.difficulty.toUpperCase()}`,
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        this.difficulty = data.difficulty;
+                        this.startNewGame(data.seed);
+                        this.showGame();
+                    });
+                } else {
+                    Swal.fire('Error', 'Código inválido o no existe.', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Error', 'Fallo de conexión.', 'error');
+            }
+        }
+    }
+
+    generateChallengeCode() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let result = '';
+        for (let i = 0; i < 4; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
     }
 }
 
