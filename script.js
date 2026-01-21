@@ -182,6 +182,10 @@ class SudokuGame {
                         currentUserNick = userDoc.data().nick;
                         console.log("Bienvenido de nuevo: " + currentUserNick);
                         this.updateUserDisplay();
+                    } else {
+                        // Phantom user (Auth exists, but Data missing). Treat as new.
+                        console.warn("User exists but profile missing. Re-initializing.");
+                        this.handleFirstLogin();
                     }
                 } catch (e) {
                     console.error("Error retrieving user:", e);
