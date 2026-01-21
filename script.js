@@ -1264,16 +1264,25 @@ class SudokuGame {
                 const doc = await db.collection('challenges').doc(code.toUpperCase().trim()).get();
                 if (doc.exists) {
                     const data = doc.data();
+                    const data = doc.data();
+
+                    // LOBBY STEP: Show found challenge details and wait for confirmation
                     Swal.fire({
-                        title: '¡Encontrado!',
+                        title: '¡Partida Encontrada!',
                         text: `Dificultad: ${data.difficulty.toUpperCase()}`,
                         icon: 'success',
-                        timer: 1500,
-                        showConfirmButton: false
-                    }).then(() => {
-                        this.difficulty = data.difficulty;
-                        this.startNewGame(data.seed);
-                        this.showGame();
+                        showCancelButton: true,
+                        confirmButtonText: '¡JUGAR AHORA!',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#48bb78', // Green for go
+                        cancelButtonColor: '#e53e3e',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.difficulty = data.difficulty;
+                            this.startNewGame(data.seed);
+                            this.showGame();
+                        }
                     });
                 } else {
                     Swal.fire('Error', 'Código inválido o no existe.', 'error');
