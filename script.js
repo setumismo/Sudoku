@@ -517,11 +517,11 @@ class SudokuGame {
         this.fillDiagonalBoxes(grid);
         this.solveSudoku(grid);
         this.solution = [...grid];
-        // Difficulty Adjustment:
-        // Easy: Was 30. +15% difficulty -> Remove more numbers. Target ~35-36.
-        // Medium: Was 40. Keep same.
-        // Hard: Was 55. -30% difficulty (easier). Target ~48 (closer to Medium but still harder).
-        const attempts = this.difficulty === 'easy' ? 36 : this.difficulty === 'medium' ? 40 : 48;
+        // Difficulty Adjustment V2:
+        // Easy: Was 36. Still "too many numbers". Increase removal to 39.
+        // Medium: Was 40. Shift to 42 to maintain gap.
+        // Hard: Was 48. Still "too few numbers". Decrease removal to 45.
+        const attempts = this.difficulty === 'easy' ? 39 : this.difficulty === 'medium' ? 42 : 45;
         this.removeNumbers(grid, attempts);
 
         this.board = grid.map((val, index) => ({
