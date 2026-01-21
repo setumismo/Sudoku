@@ -1,4 +1,6 @@
-/* --- ORIGINAL STYLES (RESTORED) --- */
+/* =========================================
+   1. ORIGINAL STYLES (Strict Copy from Head~2)
+   ========================================= */
 :root {
     --bg-app: #f0f2f5;
     --bg-page: #ffffff;
@@ -346,6 +348,7 @@ body {
     border: none;
     border-radius: 8px;
     padding: 5px 0;
+    /* Reduced padding to fit counter */
     font-size: 1.5rem;
     font-weight: 500;
     color: var(--accent);
@@ -358,6 +361,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 65px;
+    /* Fixed height for consistency */
 }
 
 .num-count {
@@ -377,6 +381,7 @@ body {
 
 .num-btn.completed .num-count {
     display: none;
+    /* Hide count when done, or keep it saying 0 */
 }
 
 .num-btn:active,
@@ -414,32 +419,346 @@ body {
     transform: scale(0.98);
 }
 
-/* --- SPA & HOME VIEW EXTENSIONS (Merged) --- */
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+.modal.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-content {
+    background-color: var(--bg-app);
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 90%;
+    width: 350px;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-content h2 {
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
+.modal-content p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px);
+    }
+
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+@keyframes penalty-flash {
+    0% {
+        color: var(--text-primary);
+    }
+
+    50% {
+        color: var(--error);
+        transform: scale(1.2);
+    }
+
+    100% {
+        color: var(--text-primary);
+        transform: scale(1);
+    }
+}
+
+.penalty-anim {
+    animation: penalty-flash 0.5s ease;
+}
+
+/* Modal Updates */
+.modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-secondary {
+    width: 100%;
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    border: 2px solid var(--board-border);
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font-family);
+}
+
+.input-name {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid var(--accent);
+    background: var(--bg-page);
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    text-align: center;
+    margin-bottom: 15px;
+    font-family: var(--font-family);
+    outline: none;
+}
+
+.highlight-time {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 1.5rem;
+    display: block;
+    margin: 10px 0;
+}
+
+/* Leaderboard */
+.modal-content.wide {
+    width: 450px;
+}
+
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 5px 10px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+}
+
+.tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+.leaderboard-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.score-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* Fix vertical alignment */
+    padding: 10px;
+    border-bottom: 1px solid var(--cell-border);
+    font-weight: 500;
+}
+
+.score-row:last-child {
+    border-bottom: none;
+}
+
+.rank {
+    width: 30px;
+    color: var(--text-secondary);
+}
+
+.rank-1 {
+    color: #ecc94b;
+    font-weight: 800;
+}
+
+/* Gold */
+.rank-2 {
+    color: #a0aec0;
+    font-weight: 700;
+}
+
+/* Silver */
+.rank-3 {
+    color: #ed8936;
+    font-weight: 700;
+}
+
+/* Bronze */
+
+.player-name {
+    flex-grow: 1;
+    padding: 0 10px;
+}
+
+.player-time {
+    font-family: monospace;
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 1.1rem;
+    /* Increased size to look balanced with date */
+    margin-right: 15px;
+    /* Separate from date */
+}
+
+.player-date {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+/* =========================================
+   MOBILE MEDIA QUERY (Original)
+   ========================================= */
+@media (max-width: 500px) {
+    .app-container {
+        border-radius: 0;
+        min-height: 100vh;
+        padding-left: 4px;
+        padding-right: 4px;
+        justify-content: flex-start;
+        padding-top: max(0px, env(safe-area-inset-top));
+        gap: 0px;
+    }
+
+    body {
+        padding: 0;
+        align-items: flex-start;
+    }
+
+    .numpad {
+        grid-template-columns: repeat(9, 1fr);
+        gap: 2px;
+    }
+
+    .num-btn {
+        padding: 2px 0;
+        font-size: 1.65rem !important;
+        height: 75px !important;
+        border-radius: 6px;
+    }
+
+    .num-btn .num-count {
+        font-size: 0.75rem;
+    }
+
+    .header {
+        margin-top: 5px;
+        margin-bottom: 5px;
+        padding: 0 5px;
+    }
+
+    .logo-container {
+        height: auto;
+        max-height: 80px;
+        overflow: visible;
+        display: flex;
+        align-items: center;
+    }
+
+    .logo-img {
+        height: auto;
+        max-height: 80px;
+        max-width: 45vw;
+        object-fit: contain;
+    }
+
+    [data-theme="dark"] .logo-img {
+        filter: invert(1) hue-rotate(180deg);
+        mix-blend-mode: screen;
+    }
+
+    .status-bar {
+        font-size: 0.8rem;
+        padding: 0 5px;
+        margin-bottom: 0px;
+    }
+
+    .status-value {
+        font-size: 1rem;
+    }
+
+    .controls-area {
+        padding: 5px 0;
+        margin: 5px 0;
+    }
+
+    .control-btn {
+        font-size: 0.65rem;
+        gap: 2px;
+    }
+
+    .control-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+/* =========================================
+   2. SPA EXTENSIONS (Minimal Additions)
+   ========================================= */
 
 .hidden {
     display: none !important;
 }
 
-/* Home View specific overrides using Original Variables */
+/* Wrapper Adaptation 
+   The original .app-container governed layout. Now we have wrapper divs.
+   This ensures the wrappers behave like the original container context.
+*/
+#game-view,
 #home-view {
-    height: 100%;
     display: flex;
     flex-direction: column;
+    gap: 15px;
+    /* Default desktop gap */
+    width: 100%;
 }
 
+@media (max-width: 500px) {
+
+    #game-view,
+    #home-view {
+        gap: 0px;
+        /* Mobile gap matched to original app-container */
+        height: 100%;
+    }
+}
+
+/* Home Menu Styles (Using inherited variables for consistency) */
 .home-header {
     text-align: center;
     margin-bottom: 20px;
+    margin-top: 20px;
 }
 
 .logo-large {
     height: 70px;
-    /* Slightly smaller to fit Original aesthetic */
     margin-bottom: 10px;
-}
-
-[data-theme="dark"] .logo-large {
-    filter: brightness(0) invert(1);
 }
 
 .highlight-nick {
@@ -453,6 +772,7 @@ body {
     flex-direction: column;
     gap: 20px;
     overflow-y: auto;
+    padding: 0 10px;
 }
 
 .section-title {
@@ -464,16 +784,18 @@ body {
     font-weight: 600;
 }
 
-.menu-grid {
+.menu-grid,
+.menu-row {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
     gap: 10px;
 }
 
+.menu-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
 .menu-row {
-    display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
 }
 
 .menu-btn {
@@ -488,25 +810,18 @@ body {
     gap: 8px;
     cursor: pointer;
     box-shadow: var(--shadow-sm);
-    transition: transform 0.1s, box-shadow 0.1s;
     color: var(--text-primary);
-}
-
-.menu-btn:active {
-    transform: scale(0.96);
 }
 
 .menu-btn.wide {
     flex-direction: row;
     width: 100%;
-    padding: 15px;
+    padding: 15px 20px;
     font-size: 1.1rem;
     font-weight: 600;
     justify-content: flex-start;
-    padding-left: 20px;
 }
 
-/* Use original color palette logic for difficulty */
 .menu-btn.easy {
     border-bottom: 3px solid var(--success);
 }
@@ -532,7 +847,7 @@ body {
     margin-top: auto;
     display: flex;
     justify-content: space-between;
-    padding-top: 10px;
+    padding: 10px;
 }
 
 .icon-btn-large {
@@ -548,7 +863,7 @@ body {
     gap: 8px;
 }
 
-/* Overlay */
+/* Overlay Styles */
 .overlay {
     position: fixed;
     top: 0;
@@ -559,6 +874,7 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 2000;
+    background: rgba(0, 0, 0, 0.85);
 }
 
 .overlay-content.centered {
@@ -569,52 +885,7 @@ body {
     border: 2px solid var(--accent);
 }
 
-/* Media Queries (Original) */
-@media (max-width: 500px) {
-    .app-container {
-        border-radius: 0;
-        min-height: 100vh;
-        padding-left: 4px;
-        padding-right: 4px;
-        justify-content: flex-start;
-        padding-top: max(0px, env(safe-area-inset-top));
-        gap: 5px;
-        /* Restored gap */
-    }
-
-    body {
-        padding: 0;
-        align-items: flex-start;
-    }
-
-    .numpad {
-        gap: 2px;
-    }
-
-    .num-btn {
-        padding: 2px 0;
-        font-size: 1.65rem !important;
-        height: 75px !important;
-        border-radius: 6px;
-    }
-
-    .num-btn .num-count {
-        font-size: 0.75rem;
-    }
-
-    .header {
-        margin-top: 5px;
-        margin-bottom: 5px;
-        padding: 0 5px;
-    }
-
-    .logo-container {
-        height: 40px;
-        /* allow width to accommodate back button */
-    }
-
-    .icon-btn {
-        padding: 6px;
-        /* slightly small buttons on mobile header */
-    }
+.btn-primary.large {
+    font-size: 1.5rem;
+    padding: 20px 40px;
 }
