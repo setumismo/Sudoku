@@ -853,9 +853,10 @@ border-radius: 12px;
 }
 
 .menu-btn {
-    background: #ffffff;
-    /* White "Elevated" Button */
-    border: none;
+    background: linear-gradient(145deg, #ffffff, #e6e9f0);
+    /* Subtle Gradient instead of flat white */
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    /* Thin border for definition */
     border-radius: 12px;
     padding: 15px 5px;
     display: flex;
@@ -912,8 +913,8 @@ border-radius: 12px;
 }
 
 .icon-btn-large {
-    background: var(--bg-app);
-    border: 1px solid var(--cell-border);
+    background: linear-gradient(145deg, #ffffff, #e6e9f0);
+    border: 1px solid rgba(255, 255, 255, 0.6);
     border-radius: 10px;
     padding: 10px 15px;
     color: var(--text-secondary);
