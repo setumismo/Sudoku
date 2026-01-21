@@ -76,14 +76,14 @@ body {
 }
 
 .app-container {
-    background-color: var(--bg-app);
+    /* background-color: var(--bg-app); REMOVED to show gradient */
     width: 100%;
     max-width: 500px;
     padding: 20px;
     padding-top: max(20px, env(safe-area-inset-top));
     padding-bottom: max(20px, env(safe-area-inset-bottom));
-    border-radius: 20px;
-    box-shadow: var(--shadow-lg);
+    /* border-radius: 20px; REMOVED border/shadow for Home View cleanliness */
+    /* box-shadow: var(--shadow-lg); */
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -727,13 +727,25 @@ body {
    The original .app-container governed layout. Now we have wrapper divs.
    This ensures the wrappers behave like the original container context.
 */
-#game-view,
+#game-view {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+
+    /* RESTORE GAME CONTAINER STYLE */
+    background-color: var(--bg-app);
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: var(--shadow-lg);
+}
+
 #home-view {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    /* Default desktop gap */
     width: 100%;
+    /* Transparent for gradient */
 }
 
 @media (max-width: 500px) {
