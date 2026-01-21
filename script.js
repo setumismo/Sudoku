@@ -164,6 +164,10 @@ class SudokuGame {
             btnHomeLeaderboard: document.getElementById('btn-home-leaderboard'),
             difficultyButtons: document.querySelectorAll('.menu-btn[data-action="start"]'),
 
+            // CHALLENGE Elements
+            btnCreateChallenge: document.getElementById('btn-create-challenge'),
+            btnJoinChallenge: document.getElementById('btn-join-challenge'),
+
             // GAME Elements (New Header)
             btnBackHome: document.getElementById('btn-back-home'),
             btnPause: document.getElementById('btn-pause'),
@@ -305,6 +309,15 @@ class SudokuGame {
                 this.startNewGame();
                 // We do NOT call showGame() here as we are already there
             });
+        }
+
+        // Listeners para Reto Fantasma
+        if (this.dom.btnCreateChallenge) {
+            this.dom.btnCreateChallenge.addEventListener('click', () => this.handleCreateChallenge());
+        }
+
+        if (this.dom.btnJoinChallenge) {
+            this.dom.btnJoinChallenge.addEventListener('click', () => this.handleJoinChallenge());
         }
 
         // --- GAME VIEW LISTENERS ---
