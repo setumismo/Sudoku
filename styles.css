@@ -690,7 +690,7 @@ border-radius: 12px;
 
     .header {
         margin-top: 5px;
-        margin-bottom: 5px;
+        margin-bottom: 15px;
         padding: 0 5px;
     }
 
@@ -717,7 +717,7 @@ border-radius: 12px;
     .status-bar {
         font-size: 0.8rem;
         padding: 0 5px;
-        margin-bottom: 0px;
+        margin-bottom: 15px;
     }
 
     .status-value {
