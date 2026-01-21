@@ -14,120 +14,167 @@
 <body>
     <div class="app-container">
 
-        <!-- Header -->
-        <header class="header">
-            <div class="logo-container">
-                <img src="logo.png" alt="Sudoku Familia" class="logo-img">
-                <span id="user-display" class="user-display"
-                    style="margin-left: 10px; font-weight: 500; font-size: 0.9rem; color: var(--text-secondary);"></span>
+        <!-- VIEW: HOME (Menu) -->
+        <div id="home-view">
+            <header class="home-header">
+                <img src="logo.png" alt="Sudoku Familia" class="logo-large">
+                <div class="user-greeting">
+                    Hola, <span id="user-nick-display" class="highlight-nick">...</span>
+                </div>
+            </header>
+
+            <main class="home-menu">
+                <!-- Sección 1: Copa Semanal -->
+                <section class="menu-section">
+                    <h3 class="section-title">🏆 Copa Semanal</h3>
+                    <div class="menu-grid">
+                        <button class="menu-btn easy" data-action="start" data-diff="easy">
+                            <span class="btn-icon">🟢</span>
+                            <span class="btn-text">Fácil</span>
+                        </button>
+                        <button class="menu-btn medium" data-action="start" data-diff="medium">
+                            <span class="btn-icon">🟡</span>
+                            <span class="btn-text">Medio</span>
+                        </button>
+                        <button class="menu-btn hard" data-action="start" data-diff="hard">
+                            <span class="btn-icon">🔴</span>
+                            <span class="btn-text">Difícil</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Sección 2: Social -->
+                <section class="menu-section">
+                    <h3 class="section-title">👻 Reto Fantasma</h3>
+                    <div class="menu-row">
+                        <button class="menu-btn secondary" onclick="alert('Próximamente')">
+                            <span class="btn-icon">⚔️</span> Crear
+                        </button>
+                        <button class="menu-btn secondary" onclick="alert('Próximamente')">
+                            <span class="btn-icon">🔗</span> Unirse
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Sección 3: Práctica -->
+                <section class="menu-section">
+                    <button class="menu-btn wide" id="btn-free-play">
+                        🎮 Juego Libre
+                    </button>
+                    <!-- Hidden select for compat logic if needed -->
+                    <select id="difficulty-select" class="difficulty-select hidden" aria-label="Select Difficulty">
+                        <option value="easy">Fácil</option>
+                        <option value="medium">Medio</option>
+                        <option value="hard">Difícil</option>
+                    </select>
+                </section>
+
+                <div class="home-footer">
+                    <button id="theme-toggle" class="icon-btn-large">🌓 Tema</button>
+                    <button id="leaderboard-home" class="icon-btn-large">🏆 Ranking</button>
+                </div>
+            </main>
+        </div>
+
+        <!-- VIEW: GAME -->
+        <div id="game-view" class="hidden">
+            <!-- Game Header -->
+            <header class="game-header">
+                <button id="btn-back-home" class="icon-btn text-btn">⬅ Menú</button>
+
+                <div class="game-stats">
+                    <div class="stat-box">
+                        <span class="stat-icon">⏱️</span>
+                        <span id="timer">00:00</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-icon">❌</span>
+                        <span id="mistakes-count">0/3</span>
+                    </div>
+                </div>
+
+                <div class="right-controls">
+                    <button id="sound-toggle" class="icon-btn" aria-label="Toggle Sound">
+                        <svg class="icon sound-on" viewBox="0 0 24 24" width="24" height="24">
+                            <path fill="currentColor"
+                                d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+                        </svg>
+                        <svg class="icon sound-off" viewBox="0 0 24 24" width="24" height="24" style="display:none;">
+                            <path fill="currentColor"
+                                d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z" />
+                        </svg>
+                    </button>
+                    <button id="btn-pause" class="icon-btn text-btn">⏸ Pausa</button>
+                </div>
+            </header>
+
+            <!-- Game Board -->
+            <div class="game-area">
+                <div id="sudoku-board" class="sudoku-board">
+                    <!-- Cells generated by JS -->
+                </div>
             </div>
-            <div class="header-controls">
-                <button id="btn-leaderboard" class="icon-btn" aria-label="Leaderboard" title="Ranking">
+
+            <!-- Action Controls -->
+            <div class="controls-area">
+                <button class="control-btn" id="btn-undo" title="Deshacer">
                     <svg viewBox="0 0 24 24" width="24" height="24">
                         <path fill="currentColor"
-                            d="M16 11V3H8v6H2v12h20V11h-6zm-6-6h4v14h-4V5zm-6 6h4v8H4v-8zm16 8h-4v-6h4v6z" />
+                            d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
                     </svg>
+                    <span>Deshacer</span>
                 </button>
-                <select id="difficulty-select" class="difficulty-select" aria-label="Select Difficulty">
-                    <option value="easy">Fácil</option>
-                    <option value="medium">Medio</option>
-                    <option value="hard">Difícil</option>
-                </select>
-                <button id="sound-toggle" class="icon-btn" aria-label="Toggle Sound" title="Sonido ON/OFF">
-                    <svg class="icon sound-on" viewBox="0 0 24 24" width="24" height="24">
+                <button class="control-btn" id="btn-erase" title="Borrar">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
                         <path fill="currentColor"
-                            d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+                            d="M16.24 3.76L14.83 2.35 18 2.35 18 2.35 21.65 6 21.65 6 21.65 6 12 15.65 9.17 12.82 16.24 5.76C16.63 5.37 16.63 4.73 16.24 4.34L16.24 3.76zM7.76 14.24L10.59 17.07 4 23.66 4 23.66 4 20 7.76 16.24C7.37 16.63 7.37 17.27 7.76 17.66L7.76 18.24 7.76 14.24zM10.59 14.24L7.76 11.41 12 7.17 14.83 10 10.59 14.24z" />
                     </svg>
-                    <svg class="icon sound-off" viewBox="0 0 24 24" width="24" height="24" style="display:none;">
-                        <path fill="currentColor"
-                            d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z" />
-                    </svg>
+                    <span>Borrar</span>
                 </button>
-                <button id="theme-toggle" class="icon-btn" aria-label="Toggle Theme">
-                    <svg class="icon sun-icon" viewBox="0 0 24 24" width="24" height="24">
+                <button class="control-btn" id="btn-notes" title="Modo Notas">
+                    <div class="toggle-indicator">OFF</div>
+                    <svg viewBox="0 0 24 24" width="24" height="24">
                         <path fill="currentColor"
-                            d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z" />
+                            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
                     </svg>
-                    <svg class="icon moon-icon" viewBox="0 0 24 24" width="24" height="24" style="display:none;">
+                    <span>Notas</span>
+                </button>
+                <button class="control-btn" id="btn-hint" title="Pista">
+                    <div class="hint-badge">+30</div>
+                    <svg viewBox="0 0 24 24" width="24" height="24">
                         <path fill="currentColor"
-                            d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z" />
+                            d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.93 12.37 7 11.25 7 10c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.25-.93 2.37-2.15 3.1z" />
                     </svg>
+                    <span>Pista</span>
                 </button>
             </div>
-        </header>
 
-        <!-- Status Bar -->
-        <div class="status-bar">
-            <div class="status-item">
-                <span class="status-label">Errores</span>
-                <span id="mistakes-count" class="status-value">0/3</span>
+            <!-- Numpad -->
+            <div class="numpad">
+                <button class="num-btn" data-num="1">1<span class="num-count">9</span></button>
+                <button class="num-btn" data-num="2">2<span class="num-count">9</span></button>
+                <button class="num-btn" data-num="3">3<span class="num-count">9</span></button>
+                <button class="num-btn" data-num="4">4<span class="num-count">9</span></button>
+                <button class="num-btn" data-num="5">5<span class="num-count">9</span></button>
+                <button class="num-btn" data-num="6">6<span class="num-count">9</span></button>
+                <button class="num-btn" data-num="7">7<span class="num-count">9</span></button>
+                <button class="num-btn" data-num="8">8<span class="num-count">9</span></button>
+                <button class="num-btn" data-num="9">9<span class="num-count">9</span></button>
             </div>
-            <div class="status-item">
-                <span class="status-label">Tiempo</span>
-                <span id="timer" class="status-value">00:00</span>
-            </div>
-            <div class="status-item">
-                <span class="status-label">Nivel</span>
-                <span id="level-display" class="status-value">Fácil</span>
-            </div>
+
+            <button id="btn-new-game" class="btn-primary" style="display:none;">Nueva Partida</button>
+            <!-- Hidden in game view, handled by Back to Menu -->
+
         </div>
 
-        <!-- Game Board -->
-        <div class="game-area">
-            <div id="sudoku-board" class="sudoku-board">
-                <!-- Cells generated by JS -->
-            </div>
+    </div>
+
+    <!-- PAUSE OVERLAY -->
+    <div id="pause-overlay" class="overlay hidden" style="z-index: 9999; background: rgba(0,0,0,0.85);">
+        <div class="overlay-content centered">
+            <h2 style="font-size: 3rem; margin-bottom: 2rem;">PAUSA</h2>
+            <button id="btn-resume" class="btn-primary large">▶ Reanudar</button>
         </div>
-
-        <!-- Action Controls -->
-        <div class="controls-area">
-            <button class="control-btn" id="btn-undo" title="Deshacer">
-                <svg viewBox="0 0 24 24" width="24" height="24">
-                    <path fill="currentColor"
-                        d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
-                </svg>
-                <span>Deshacer</span>
-            </button>
-            <button class="control-btn" id="btn-erase" title="Borrar">
-                <svg viewBox="0 0 24 24" width="24" height="24">
-                    <path fill="currentColor"
-                        d="M16.24 3.76L14.83 2.35 18 2.35 18 2.35 21.65 6 21.65 6 21.65 6 12 15.65 9.17 12.82 16.24 5.76C16.63 5.37 16.63 4.73 16.24 4.34L16.24 3.76zM7.76 14.24L10.59 17.07 4 23.66 4 23.66 4 20 7.76 16.24C7.37 16.63 7.37 17.27 7.76 17.66L7.76 18.24 7.76 14.24zM10.59 14.24L7.76 11.41 12 7.17 14.83 10 10.59 14.24z" />
-                </svg>
-                <span>Borrar</span>
-            </button>
-            <button class="control-btn" id="btn-notes" title="Modo Notas">
-                <div class="toggle-indicator">OFF</div>
-                <svg viewBox="0 0 24 24" width="24" height="24">
-                    <path fill="currentColor"
-                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                </svg>
-                <span>Notas</span>
-            </button>
-            <button class="control-btn" id="btn-hint" title="Pista">
-                <div class="hint-badge">+30</div>
-                <svg viewBox="0 0 24 24" width="24" height="24">
-                    <path fill="currentColor"
-                        d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.93 12.37 7 11.25 7 10c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.25-.93 2.37-2.15 3.1z" />
-                </svg>
-                <span>Pista</span>
-            </button>
-        </div>
-
-        <!-- Numpad -->
-        <div class="numpad">
-            <button class="num-btn" data-num="1">1<span class="num-count">9</span></button>
-            <button class="num-btn" data-num="2">2<span class="num-count">9</span></button>
-            <button class="num-btn" data-num="3">3<span class="num-count">9</span></button>
-            <button class="num-btn" data-num="4">4<span class="num-count">9</span></button>
-            <button class="num-btn" data-num="5">5<span class="num-count">9</span></button>
-            <button class="num-btn" data-num="6">6<span class="num-count">9</span></button>
-            <button class="num-btn" data-num="7">7<span class="num-count">9</span></button>
-            <button class="num-btn" data-num="8">8<span class="num-count">9</span></button>
-            <button class="num-btn" data-num="9">9<span class="num-count">9</span></button>
-        </div>
-
-        <button id="btn-new-game" class="btn-primary">Nueva Partida</button>
-
     </div>
 
     <!-- Modals -->

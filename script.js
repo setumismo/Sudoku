@@ -192,25 +192,168 @@ class SudokuGame {
     }
 
     init() {
+        this.dom = {
+            // VIEWS
+            homeView: document.getElementById('home-view'),
+            gameView: document.getElementById('game-view'),
+            appContainer: document.querySelector('.app-container'),
+
+            // HOME Elements
+            userDisplay: document.getElementById('user-nick-display'), // In SPA header
+            freePlayBtn: document.getElementById('btn-free-play'),
+            leaderboardHomeBtn: document.getElementById('leaderboard-home'),
+            difficultyButtons: document.querySelectorAll('.menu-btn[data-action="start"]'),
+
+            // GAME Elements (New Header)
+            btnBackHome: document.getElementById('btn-back-home'),
+            btnPause: document.getElementById('btn-pause'),
+            pauseOverlay: document.getElementById('pause-overlay'),
+            btnResume: document.getElementById('btn-resume'),
+
+            // Common
+            board: document.getElementById('sudoku-board'),
+            mistakes: document.getElementById('mistakes-count'),
+            timer: document.getElementById('timer'),
+
+            // Old Controls kept in Game View
+            themeToggle: document.getElementById('theme-toggle'), // In footer now
+            soundToggle: document.getElementById('sound-toggle'), // In game header
+
+            undoBtn: document.getElementById('btn-undo'),
+            eraseBtn: document.getElementById('btn-erase'),
+            notesBtn: document.getElementById('btn-notes'),
+            hintBtn: document.getElementById('btn-hint'),
+            numpad: document.querySelectorAll('.num-btn'),
+
+            // Modals
+            modal: document.getElementById('game-over-modal'),
+            victoryModal: document.getElementById('victory-modal'),
+            leaderboardModal: document.getElementById('leaderboard-modal'),
+
+            // Modal Action Buttons
+            modalTitle: document.getElementById('modal-title'),
+            modalMessage: document.getElementById('modal-message'),
+            restartBtn: document.getElementById('btn-restart'),
+            reviveBtn: document.getElementById('btn-revive'),
+            finalTime: document.getElementById('final-time'),
+            playerName: document.getElementById('player-name'),
+            saveScoreBtn: document.getElementById('btn-save-score'),
+            closeLeaderboardBtn: document.getElementById('btn-close-leaderboard'),
+            leaderboardList: document.querySelector('.leaderboard-list'),
+            tabBtns: document.querySelectorAll('.tab-btn'),
+        };
+
         this.setupEventListeners();
         this.loadTheme();
-        this.checkAuth(); // Check auth on startup
-        this.startNewGame();
+        this.checkAuth();
 
-        // Audio Init
+        // Initial Audio Context
         const initAudio = () => {
             if (this.soundManager) {
                 this.soundManager.init();
                 document.removeEventListener('click', initAudio);
-                document.removeEventListener('keydown', initAudio);
             }
         };
         document.addEventListener('click', initAudio);
-        document.addEventListener('keydown', initAudio);
+
+        // Show Home by default
+        this.showHome();
     }
 
+    // --- NAVIGATION ---
+    showHome() {
+        this.dom.homeView.classList.remove('hidden');
+        this.dom.gameView.classList.add('hidden');
+        this.stopTimer(); // Ensure timer stops on exit
+    }
+
+    showGame() {
+        this.dom.homeView.classList.add('hidden');
+        this.dom.gameView.classList.remove('hidden');
+    }
+
+    // --- GAME LOGIC ---
+
     setupEventListeners() {
-        // Sound Toggle
+        // --- HOME MENU LISTENERS ---
+
+        // Difficulty Buttons (Copa Semanal)
+        this.dom.difficultyButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const diff = btn.dataset.diff;
+                this.difficulty = diff;
+                this.startNewGame();
+                this.showGame();
+            });
+        });
+
+        // Free Play
+        if (this.dom.freePlayBtn) {
+            this.dom.freePlayBtn.addEventListener('click', () => {
+                // For now, default to medium or ask. Let's default to Medium for Free Play.
+                // Or better, launch Easy by default.
+                this.difficulty = 'medium';
+                this.startNewGame();
+                this.showGame();
+            });
+        }
+
+        // Leaderboard from Home
+        if (this.dom.leaderboardHomeBtn) {
+            this.dom.leaderboardHomeBtn.addEventListener('click', () => this.showLeaderboard());
+        }
+
+        // Theme Toggle (Home footer)
+        if (this.dom.themeToggle) {
+            this.dom.themeToggle.addEventListener('click', () => this.toggleTheme());
+        }
+
+        // --- GAME VIEW LISTENERS ---
+
+        // Back to Menu
+        this.dom.btnBackHome.addEventListener('click', () => {
+            Swal.fire({
+                title: '¿Abandonar partida?',
+                text: "Se perderá el progreso actual.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, salir',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.showHome();
+                }
+            });
+        });
+
+        // Pause
+        this.dom.btnPause.addEventListener('click', () => {
+            this.stopTimer();
+            this.dom.pauseOverlay.classList.remove('hidden');
+        });
+
+        // Resume (Overlay Button)
+        this.dom.btnResume.addEventListener('click', () => {
+            this.dom.pauseOverlay.classList.add('hidden');
+            this.startTimer();
+        });
+
+
+        // ... (Existing Game Controls: Undo, Erase, Notes, Hint, Numpad) ...
+        this.dom.undoBtn.addEventListener('click', (e) => { e.stopPropagation(); this.undo(); });
+        this.dom.eraseBtn.addEventListener('click', (e) => { e.stopPropagation(); this.erase(); });
+        this.dom.notesBtn.addEventListener('click', (e) => { e.stopPropagation(); this.toggleNotesMode(); });
+        this.dom.hintBtn.addEventListener('click', (e) => { e.stopPropagation(); this.useHint(); });
+
+        this.dom.numpad.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleNumberInput(parseInt(btn.dataset.num));
+            });
+        });
+
+        // Sound Toggle (In Game Header now)
         if (this.dom.soundToggle) {
             this.dom.soundToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -220,67 +363,17 @@ class SudokuGame {
             });
         }
 
-        // Difficulty
-        this.dom.difficultySelect.addEventListener('change', (e) => {
-            if (confirm('¿Iniciar nueva partida con esta dificultad?')) {
-                this.difficulty = e.target.value;
-                this.startNewGame();
-                this.dom.level.textContent = e.target.options[e.target.selectedIndex].text;
-            } else {
-                e.target.value = this.difficulty;
-            }
+        // Modals
+        this.dom.restartBtn.addEventListener('click', () => { this.dom.modal.classList.add('hidden'); this.startNewGame(); });
+        this.dom.reviveBtn.addEventListener('click', () => { this.reviveGame(); });
+        this.dom.saveScoreBtn.addEventListener('click', () => {
+            const inputName = this.dom.playerName.value.trim();
+            const name = inputName || this.currentUserNick || 'Anónimo';
+            this.saveScore(name);
+            this.dom.victoryModal.classList.add('hidden');
+            this.showLeaderboard(this.difficulty);
         });
-
-        // Theme
-        this.dom.themeToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.toggleTheme();
-        });
-
-        // Controls
-        this.dom.newGameBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (confirm('¿Seguro que quieres empezar una nueva partida?')) {
-                this.startNewGame();
-            }
-        });
-
-        this.dom.restartBtn.addEventListener('click', () => {
-            this.dom.modal.classList.add('hidden');
-            this.startNewGame();
-        });
-
-        this.dom.reviveBtn.addEventListener('click', () => {
-            this.reviveGame();
-        });
-
-        this.dom.board.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const cell = e.target.closest('.cell');
-            if (cell) this.handleCellClick(parseInt(cell.dataset.index));
-        });
-
-        this.dom.numpad.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.handleNumberInput(parseInt(btn.dataset.num));
-            });
-        });
-
-        this.dom.undoBtn.addEventListener('click', (e) => { e.stopPropagation(); this.undo(); });
-        this.dom.eraseBtn.addEventListener('click', (e) => { e.stopPropagation(); this.erase(); });
-        this.dom.notesBtn.addEventListener('click', (e) => { e.stopPropagation(); this.toggleNotesMode(); });
-        this.dom.hintBtn.addEventListener('click', (e) => { e.stopPropagation(); this.useHint(); });
-
-        // Leaderboard
-        this.dom.leaderboardBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.showLeaderboard();
-        });
-
-        this.dom.closeLeaderboardBtn.addEventListener('click', () => {
-            this.dom.leaderboardModal.classList.add('hidden');
-        });
+        this.dom.closeLeaderboardBtn.addEventListener('click', () => { this.dom.leaderboardModal.classList.add('hidden'); });
 
         this.dom.tabBtns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -290,53 +383,35 @@ class SudokuGame {
             });
         });
 
-        this.dom.saveScoreBtn.addEventListener('click', () => {
-            // Use current user nick if available, otherwise input or Anónimo
-            const inputName = this.dom.playerName.value.trim();
-            const name = inputName || this.currentUserNick || 'Anónimo';
-            this.saveScore(name);
-            this.dom.victoryModal.classList.add('hidden');
-            this.showLeaderboard(this.difficulty);
+        // Board Interactions
+        this.dom.board.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const cell = e.target.closest('.cell');
+            if (cell) this.handleCellClick(parseInt(cell.dataset.index));
         });
 
-        // Login Button Listener
-        if (this.dom.loginBtn) {
-            this.dom.loginBtn.addEventListener('click', () => {
-                const nick = this.dom.loginInput.value.trim();
-                if (nick) {
-                    this.handleLogin(nick);
-                } else {
-                    alert("Por favor, escribe un nick.");
-                }
-            });
-        }
-
-        // Global Deselect
-        document.addEventListener('click', (e) => {
-            if (!this.dom.modal.classList.contains('hidden') ||
-                !this.dom.victoryModal.classList.contains('hidden') ||
-                !this.dom.leaderboardModal.classList.contains('hidden')) return;
-
-            if (!e.target.closest('.app-container')) {
-                this.deselectAll();
-            } else {
-                if (e.target.classList.contains('app-container') || e.target.classList.contains('game-area') || e.target.classList.contains('header')) {
-                    this.deselectAll();
-                }
+        // Global Keyboard
+        document.addEventListener('keydown', (e) => {
+            if (!this.dom.gameView.classList.contains('hidden') && this.dom.modal.classList.contains('hidden')) {
+                if (this.isGameOver) return;
+                if (e.key >= '1' && e.key <= '9') this.handleKeyboardNumber(parseInt(e.key));
+                else if (e.key === 'Backspace' || e.key === 'Delete') this.erase();
+                else if (e.key === 'Escape') this.deselectAll();
+                else if (e.key === 'ArrowUp') this.moveSelection(-9);
+                else if (e.key === 'ArrowDown') this.moveSelection(9);
+                else if (e.key === 'ArrowLeft') this.moveSelection(-1);
+                else if (e.key === 'ArrowRight') this.moveSelection(1);
+                else if (e.key.toLowerCase() === 'n') this.toggleNotesMode();
             }
         });
 
-        // Keyboard
-        document.addEventListener('keydown', (e) => {
-            if (this.isGameOver) return;
-            if (e.key >= '1' && e.key <= '9') this.handleKeyboardNumber(parseInt(e.key));
-            else if (e.key === 'Backspace' || e.key === 'Delete') this.erase();
-            else if (e.key === 'Escape') this.deselectAll();
-            else if (e.key === 'ArrowUp') this.moveSelection(-9);
-            else if (e.key === 'ArrowDown') this.moveSelection(9);
-            else if (e.key === 'ArrowLeft') this.moveSelection(-1);
-            else if (e.key === 'ArrowRight') this.moveSelection(1);
-            else if (e.key.toLowerCase() === 'n') this.toggleNotesMode();
+        // Click outside to deselect
+        document.addEventListener('click', (e) => {
+            // Only if in game view
+            if (this.dom.gameView.classList.contains('hidden')) return;
+
+            if (!e.target.closest('.app-container')) this.deselectAll();
+            else if (e.target.classList.contains('game-area')) this.deselectAll();
         });
     }
 
