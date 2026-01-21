@@ -303,9 +303,8 @@ border-radius: 12px;
 /* Controls */
 .controls-area {
     display: flex;
-    display: flex;
     justify-content: space-around;
-    padding: 40px 0;
+    padding: 20px 0;
 }
 
 .control-btn {
