@@ -517,7 +517,11 @@ class SudokuGame {
         this.fillDiagonalBoxes(grid);
         this.solveSudoku(grid);
         this.solution = [...grid];
-        const attempts = this.difficulty === 'easy' ? 30 : this.difficulty === 'medium' ? 40 : 55;
+        // Difficulty Adjustment:
+        // Easy: Was 30. +15% difficulty -> Remove more numbers. Target ~35-36.
+        // Medium: Was 40. Keep same.
+        // Hard: Was 55. -30% difficulty (easier). Target ~48 (closer to Medium but still harder).
+        const attempts = this.difficulty === 'easy' ? 36 : this.difficulty === 'medium' ? 40 : 48;
         this.removeNumbers(grid, attempts);
 
         this.board = grid.map((val, index) => ({
@@ -1212,6 +1216,7 @@ class SudokuGame {
                 seed: seed,
                 difficulty: finalDiff,
                 createdBy: userId,
+                createdByNick: this.currentUserNick, // Save creator name
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
@@ -1264,11 +1269,17 @@ class SudokuGame {
                 const doc = await db.collection('challenges').doc(code.toUpperCase().trim()).get();
                 if (doc.exists) {
                     const data = doc.data();
+                    const creatorName = data.createdByNick || 'un Jugador Anónimo';
 
                     // LOBBY STEP: Show found challenge details and wait for confirmation
                     Swal.fire({
                         title: '¡Partida Encontrada!',
-                        text: `Dificultad: ${data.difficulty.toUpperCase()}`,
+                        html: `
+                            <p style="font-size: 1.1em; color: #4a5568;">Te unes al reto de <b>${creatorName}</b></p>
+                            <div style="margin-top: 15px; font-weight: bold; color: #2d3748;">
+                                Dificultad: <span style="color:#4c6ef5">${data.difficulty.toUpperCase()}</span>
+                            </div>
+                        `,
                         icon: 'success',
                         showCancelButton: true,
                         confirmButtonText: '¡JUGAR AHORA!',
