@@ -143,49 +143,7 @@ class SudokuGame {
         this.currentUserNick = 'Anónimo'; // New: Track user nick
 
         this.dom = {
-            board: document.getElementById('sudoku-board'),
-            mistakes: document.getElementById('mistakes-count'),
-            timer: document.getElementById('timer'),
-            level: document.getElementById('level-display'),
-            difficultySelect: document.getElementById('difficulty-select'),
-            themeToggle: document.getElementById('theme-toggle'),
-            soundToggle: document.getElementById('sound-toggle'), // Added
-            newGameBtn: document.getElementById('btn-new-game'),
-            undoBtn: document.getElementById('btn-undo'),
-            eraseBtn: document.getElementById('btn-erase'),
-            notesBtn: document.getElementById('btn-notes'),
-            hintBtn: document.getElementById('btn-hint'),
-            numpad: document.querySelectorAll('.num-btn'),
-
-            // Modals
-            modal: document.getElementById('game-over-modal'),
-            victoryModal: document.getElementById('victory-modal'),
-            leaderboardModal: document.getElementById('leaderboard-modal'),
-
-            // Modal Elements
-            modalTitle: document.getElementById('modal-title'),
-            modalMessage: document.getElementById('modal-message'),
-            restartBtn: document.getElementById('btn-restart'),
-            reviveBtn: document.getElementById('btn-revive'),
-
-            // Victory & Leaderboard
-            finalTime: document.getElementById('final-time'),
-            playerName: document.getElementById('player-name'),
-            saveScoreBtn: document.getElementById('btn-save-score'),
-            leaderboardBtn: document.getElementById('btn-leaderboard'),
-            closeLeaderboardBtn: document.getElementById('btn-close-leaderboard'),
-            leaderboardList: document.querySelector('.leaderboard-list'),
-            tabBtns: document.querySelectorAll('.tab-btn'),
-
-            tabBtns: document.querySelectorAll('.tab-btn'),
-
-            appContainer: document.querySelector('.app-container'),
-
-            // Login Elements
-            loginModal: document.getElementById('login-modal'),
-            loginInput: document.getElementById('login-nick'),
-            loginBtn: document.getElementById('btn-login'),
-            userDisplay: document.getElementById('user-display')
+            // ... filled in init()
         };
 
         this.init();
@@ -199,7 +157,7 @@ class SudokuGame {
             appContainer: document.querySelector('.app-container'),
 
             // HOME Elements
-            userDisplay: document.getElementById('user-nick-display'), // In SPA header
+            userDisplay: document.getElementById('user-nick-display'),
             freePlayBtn: document.getElementById('btn-free-play'),
             leaderboardHomeBtn: document.getElementById('leaderboard-home'),
             difficultyButtons: document.querySelectorAll('.menu-btn[data-action="start"]'),
@@ -214,10 +172,15 @@ class SudokuGame {
             board: document.getElementById('sudoku-board'),
             mistakes: document.getElementById('mistakes-count'),
             timer: document.getElementById('timer'),
+            level: document.getElementById('level-display'),
 
             // Old Controls kept in Game View
             themeToggle: document.getElementById('theme-toggle'), // In footer now
+            themeToggleHome: document.getElementById('theme-toggle-home'), // Home footer
+
             soundToggle: document.getElementById('sound-toggle'), // In game header
+            leaderboardBtn: document.getElementById('btn-leaderboard'), // In Game Header
+            difficultySelect: document.getElementById('difficulty-select'), // In Game Header
 
             undoBtn: document.getElementById('btn-undo'),
             eraseBtn: document.getElementById('btn-erase'),
@@ -264,15 +227,29 @@ class SudokuGame {
     showHome() {
         this.dom.homeView.classList.remove('hidden');
         this.dom.gameView.classList.add('hidden');
-        this.stopTimer(); // Ensure timer stops on exit
+        this.updateThemeIcons();
+        this.stopTimer();
     }
 
     showGame() {
         this.dom.homeView.classList.add('hidden');
         this.dom.gameView.classList.remove('hidden');
+        this.updateThemeIcons();
     }
 
-    // --- GAME LOGIC ---
+    updateThemeIcons() {
+        const isDark = document.body.getAttribute('data-theme') === 'dark';
+        [this.dom.themeToggle, this.dom.themeToggleHome].forEach(btn => {
+            if (btn) {
+                const sun = btn.querySelector('.sun-icon');
+                const moon = btn.querySelector('.moon-icon');
+                if (sun && moon) {
+                    sun.style.display = isDark ? 'none' : 'block';
+                    moon.style.display = isDark ? 'block' : 'none';
+                }
+            }
+        });
+    }
 
     setupEventListeners() {
         // --- HOME MENU LISTENERS ---
@@ -284,17 +261,18 @@ class SudokuGame {
                 this.difficulty = diff;
                 this.startNewGame();
                 this.showGame();
+                if (this.dom.difficultySelect) this.dom.difficultySelect.value = diff;
+                if (this.dom.level) this.dom.level.textContent = diff === 'easy' ? 'Fácil' : diff === 'medium' ? 'Medio' : 'Difícil';
             });
         });
 
         // Free Play
         if (this.dom.freePlayBtn) {
             this.dom.freePlayBtn.addEventListener('click', () => {
-                // For now, default to medium or ask. Let's default to Medium for Free Play.
-                // Or better, launch Easy by default.
                 this.difficulty = 'medium';
                 this.startNewGame();
                 this.showGame();
+                if (this.dom.level) this.dom.level.textContent = 'Medio';
             });
         }
 
@@ -304,8 +282,11 @@ class SudokuGame {
         }
 
         // Theme Toggle (Home footer)
-        if (this.dom.themeToggle) {
-            this.dom.themeToggle.addEventListener('click', () => this.toggleTheme());
+        if (this.dom.themeToggleHome) {
+            this.dom.themeToggleHome.addEventListener('click', () => {
+                this.toggleTheme();
+                this.updateThemeIcons();
+            });
         }
 
         // --- GAME VIEW LISTENERS ---
@@ -339,6 +320,13 @@ class SudokuGame {
             this.startTimer();
         });
 
+        // Common
+        if (this.dom.themeToggle) {
+            this.dom.themeToggle.addEventListener('click', () => {
+                this.toggleTheme();
+                this.updateThemeIcons();
+            });
+        }
 
         // ... (Existing Game Controls: Undo, Erase, Notes, Hint, Numpad) ...
         this.dom.undoBtn.addEventListener('click', (e) => { e.stopPropagation(); this.undo(); });
@@ -353,7 +341,7 @@ class SudokuGame {
             });
         });
 
-        // Sound Toggle (In Game Header now)
+        // Sound Toggle
         if (this.dom.soundToggle) {
             this.dom.soundToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -361,6 +349,11 @@ class SudokuGame {
                 this.dom.soundToggle.querySelector('.sound-on').style.display = isEnabled ? 'block' : 'none';
                 this.dom.soundToggle.querySelector('.sound-off').style.display = isEnabled ? 'none' : 'block';
             });
+        }
+
+        // Leaderboard within Game
+        if (this.dom.leaderboardBtn) {
+            this.dom.leaderboardBtn.addEventListener('click', () => this.showLeaderboard());
         }
 
         // Modals
@@ -415,26 +408,19 @@ class SudokuGame {
         });
     }
 
-    // ... Theme methods same as before ...
     toggleTheme() {
         const body = document.body;
         const currentTheme = body.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
         body.setAttribute('data-theme', newTheme);
-        const sun = document.querySelector('.sun-icon');
-        const moon = document.querySelector('.moon-icon');
-        if (newTheme === 'dark') { sun.style.display = 'none'; moon.style.display = 'block'; }
-        else { sun.style.display = 'block'; moon.style.display = 'none'; }
         localStorage.setItem('theme', newTheme);
+        // Visual updates handled by updateThemeIcons
     }
 
     loadTheme() {
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.body.setAttribute('data-theme', savedTheme);
-        if (savedTheme === 'dark') {
-            document.querySelector('.sun-icon').style.display = 'none';
-            document.querySelector('.moon-icon').style.display = 'block';
-        }
+        // Initial visual update handled by init -> updateThemeIcons/showHome
     }
 
     startNewGame() {
@@ -454,7 +440,6 @@ class SudokuGame {
         this.startTimer();
     }
 
-    // ... Generator methods same as before ...
     generateBoard() {
         let grid = Array(81).fill(0);
         this.fillDiagonalBoxes(grid);
@@ -493,8 +478,7 @@ class SudokuGame {
     }
 
     isSafe(grid, row, col, num) {
-        for (let x = 9; x < 9; x++) if (grid[row * 9 + x] === num) return false; // Bug fix: x=0
-        for (let x = 0; x < 9; x++) if (grid[row * 9 + x] === num) return false; // Corrected
+        for (let x = 0; x < 9; x++) if (grid[row * 9 + x] === num) return false;
         for (let x = 0; x < 9; x++) if (grid[x * 9 + col] === num) return false;
         let startRow = row - row % 3, startCol = col - col % 3;
         for (let i = 0; i < 3; i++)
@@ -558,7 +542,7 @@ class SudokuGame {
                 notesGrid.classList.add('notes-grid');
                 [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach(n => {
                     const note = document.createElement('div');
-                    note.classList.add('note');
+                    cell.classList.add('note'); // Corrected note class application? No, note is child
                     if (cellData.notes.includes(n)) note.textContent = n;
                     notesGrid.appendChild(note);
                 });
@@ -621,8 +605,6 @@ class SudokuGame {
         });
     }
 
-    // --- Core Logic Updates ---
-
     handleCellClick(index) {
         if (this.isGameOver) return;
         this.soundManager.playClick();
@@ -649,22 +631,14 @@ class SudokuGame {
         this.handleNumberInput(num);
     }
 
-
-
-    // Smart Note Logic: Clears 'num' from notes in the same Row, Col, and Box
     clearRelatedNotes(index, num) {
         const row = Math.floor(index / 9);
         const col = index % 9;
         const startRow = row - (row % 3);
         const startCol = col - (col % 3);
 
-        // 1. Clear Row
         for (let c = 0; c < 9; c++) this.removeNoteFromCell(row * 9 + c, num);
-
-        // 2. Clear Column
         for (let r = 0; r < 9; r++) this.removeNoteFromCell(r * 9 + col, num);
-
-        // 3. Clear Box (Quadrant)
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
                 this.removeNoteFromCell((startRow + i) * 9 + (startCol + j), num);
@@ -684,7 +658,6 @@ class SudokuGame {
         const cell = this.board[index];
         if (cell.fixed) return;
 
-        // Notes Mode Logic (unchanged)
         if (this.notesMode) {
             this.saveState();
             if (cell.notes.includes(num)) cell.notes = cell.notes.filter(n => n !== num);
@@ -694,26 +667,20 @@ class SudokuGame {
             return;
         }
 
-        // Standard Input Logic
         if (cell.value === num) {
             this.saveState();
             cell.value = null;
             this.renderBoard();
         } else {
-            // Check Correctness FIRST
             if (num !== this.solution[index]) {
-                // Incorrect: Penalty, Visual Feedback, Auto-Clear (No History Save)
                 cell.value = num;
                 cell.error = true;
                 this.mistakes++;
                 this.soundManager.playError();
                 this.applyPenalty(10);
                 this.updateMistakesDisplay();
-
                 this.renderBoard();
                 this.checkGameOver();
-
-                // Auto-clear after 1s
                 setTimeout(() => {
                     if (!this.isGameOver) {
                         cell.value = null;
@@ -721,23 +688,17 @@ class SudokuGame {
                         this.renderBoard();
                     }
                 }, 1000);
-
             } else {
-                // Correct: Save State, apply value
                 this.saveState();
                 cell.value = num;
                 cell.notes = [];
                 cell.error = false;
-
-                this.clearRelatedNotes(index, num); // Smart Notes: Auto-clear
-
-                // Check for unit completion (Success Sound)
+                this.clearRelatedNotes(index, num);
                 if (this.checkUnitCompletion(index)) {
                     this.soundManager.playSuccess();
                 } else {
                     this.soundManager.playClick();
                 }
-
                 this.checkWin();
                 this.renderBoard();
             }
@@ -750,21 +711,18 @@ class SudokuGame {
         const startRow = row - (row % 3);
         const startCol = col - (col % 3);
 
-        // Check Row
         let rowComplete = true;
         for (let c = 0; c < 9; c++) {
             if (this.board[row * 9 + c].value === null) { rowComplete = false; break; }
         }
         if (rowComplete) return true;
 
-        // Check Col
         let colComplete = true;
         for (let r = 0; r < 9; r++) {
             if (this.board[r * 9 + col].value === null) { colComplete = false; break; }
         }
         if (colComplete) return true;
 
-        // Check Box
         let boxComplete = true;
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
@@ -772,26 +730,21 @@ class SudokuGame {
             }
         }
         if (boxComplete) return true;
-
         return false;
     }
-
 
     applyPenalty(seconds) {
         this.timer += seconds;
         this.updateTimerDisplay();
-        // Visual feedback
         this.dom.timer.classList.add('penalty-anim');
         setTimeout(() => this.dom.timer.classList.remove('penalty-anim'), 500);
     }
 
     reviveGame() {
-        this.applyPenalty(30); // +30s "Cost"
-        this.mistakes = 0; // Reset mistakes
+        this.applyPenalty(30);
+        this.mistakes = 0;
         this.updateMistakesDisplay();
         this.isGameOver = false;
-
-        // Clean up any fatal errors that caused the Game Over
         this.board.forEach(cell => {
             if (cell.error) {
                 cell.value = null;
@@ -800,7 +753,6 @@ class SudokuGame {
             }
         });
         this.renderBoard();
-
         this.dom.modal.classList.add('hidden');
         this.startTimer();
     }
@@ -874,7 +826,6 @@ class SudokuGame {
         if (this.history.length === 0 || this.isGameOver) return;
         const prevState = this.history.pop();
         this.board = prevState.board;
-        // this.mistakes = prevState.mistakes; // REMOVED: Mistakes persist through undo
         this.updateMistakesDisplay();
         this.renderBoard();
     }
@@ -910,39 +861,30 @@ class SudokuGame {
         if (isFull && noErrors) {
             this.isGameOver = true;
             this.stopTimer();
-            // Show Victory Modal
             this.soundManager.playWin();
             this.dom.finalTime.textContent = this.dom.timer.textContent;
             this.dom.victoryModal.classList.remove('hidden');
         }
     }
 
-    // --- Leaderboard Logic ---
-
-    // --- AUTH LOGIC (STRICT UNIQUE NICKNAME) ---
-
     checkAuth() {
         if (!auth) return;
         auth.onAuthStateChanged((user) => {
             if (user) {
-                // User exists, but verify profile
                 db.collection('users').doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         this.currentUserNick = doc.data().nick;
                         console.log("Welcome back:", this.currentUserNick);
                         this.updateUserDisplay();
                     } else {
-                        // Phantom user (Auth but no DB). Treat as new.
                         console.warn("Profile missing. Re-starting flow.");
                         this.handleFirstLogin();
                     }
                 }).catch(e => {
                     console.error("Auth Error:", e);
-                    // Fallback: Try to login again
                     this.handleFirstLogin();
                 });
             } else {
-                // No user
                 this.handleFirstLogin();
             }
         });
@@ -953,7 +895,6 @@ class SudokuGame {
         let finalNick = "";
 
         while (!isValid) {
-            // 1. Prompt for Nick
             const { value: nickname } = await Swal.fire({
                 title: 'Bienvenido a Sudoku',
                 text: 'Elige un nombre único para el ranking',
@@ -970,20 +911,16 @@ class SudokuGame {
             });
 
             if (nickname) {
-                Swal.showLoading(); // Show loading while checking
+                Swal.showLoading();
                 try {
-                    // 2. Check Uniqueness
                     const snapshot = await db.collection('users').where('nick', '==', nickname).get();
-
                     if (!snapshot.empty) {
-                        // Duplicate found
                         await Swal.fire({
                             icon: 'error',
                             title: 'Nombre ocupado',
                             text: `El nick "${nickname}" ya existe. Por favor elige otro.`
                         });
                     } else {
-                        // Unique!
                         isValid = true;
                         finalNick = nickname;
                     }
@@ -994,7 +931,6 @@ class SudokuGame {
             }
         }
 
-        // 3. Create Account
         try {
             const result = await auth.signInAnonymously();
             const user = result.user;
@@ -1038,17 +974,15 @@ class SudokuGame {
         const seconds = this.timer;
         const date = new Date().toISOString();
 
-        // 1. Local Save (My Records)
         const localScores = JSON.parse(localStorage.getItem('sudokuResults')) || {};
         if (!localScores[this.difficulty]) localScores[this.difficulty] = [];
 
         const newScore = { name, timeStr, seconds, date };
         localScores[this.difficulty].push(newScore);
         localScores[this.difficulty].sort((a, b) => a.seconds - b.seconds);
-        localScores[this.difficulty] = localScores[this.difficulty].slice(0, 100); // Keep top 100 locally
+        localScores[this.difficulty] = localScores[this.difficulty].slice(0, 100);
         localStorage.setItem('sudokuResults', JSON.stringify(localScores));
 
-        // 2. Global Save (Firebase Compat)
         if (db) {
             try {
                 const scoreData = {
@@ -1058,12 +992,9 @@ class SudokuGame {
                     difficulty: this.difficulty,
                     date: date
                 };
-
-                // Add UID if pending
                 if (auth && auth.currentUser) {
                     scoreData.uid = auth.currentUser.uid;
                 }
-
                 await db.collection("scores").add(scoreData);
                 console.log("Score saved to Firebase");
             } catch (e) {
@@ -1075,36 +1006,27 @@ class SudokuGame {
     showLeaderboard(defaultDiff = null) {
         this.dom.leaderboardModal.classList.remove('hidden');
         const diff = defaultDiff || this.difficulty;
-
         this.dom.tabBtns.forEach(btn => {
             if (btn.dataset.diff === diff) btn.classList.add('active');
             else btn.classList.remove('active');
         });
-
         this.renderLeaderboardScores(diff);
     }
 
     async renderLeaderboardScores(difficulty) {
         this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Cargando...</div>';
-
         try {
             if (!db) throw new Error("Database not initialized");
 
-            // Fetch Global Scores from Firebase (Compat)
             console.log(`Fetching scores for difficulty: ${difficulty}`);
             const querySnapshot = await db.collection("scores")
                 .where("difficulty", "==", difficulty)
-                .limit(100) // Fetch top 100 candidates to sort client-side
+                .limit(100)
                 .get();
-
-            console.log(`Found ${querySnapshot.size} documents.`);
 
             let list = [];
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                console.log('Datos recibidos de Firebase:', data); // Debug requested by user
-
-                // Explicitly mapping fields as requested
                 list.push({
                     name: data.name,
                     seconds: data.seconds,
@@ -1114,16 +1036,12 @@ class SudokuGame {
                 });
             });
 
-            // Client-side Sort and Limit (Bypasses missing composite index error)
             list.sort((a, b) => a.seconds - b.seconds);
             list = list.slice(0, 20);
-
-            console.log("Procesando lista final:", list);
             this.updateLeaderboardUI(list);
 
         } catch (error) {
             console.error("Error fetching global scores:", error);
-            // Fallback to local
             this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Offline - Mostrando récords locales</div>';
 
             const scores = JSON.parse(localStorage.getItem('sudokuResults')) || {};
@@ -1134,7 +1052,6 @@ class SudokuGame {
 
     updateLeaderboardUI(list) {
         this.dom.leaderboardList.innerHTML = '';
-
         if (list.length === 0) {
             this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">No hay puntuaciones aún.</div>';
             return;
@@ -1143,11 +1060,8 @@ class SudokuGame {
         list.forEach((score, index) => {
             const row = document.createElement('div');
             row.className = 'score-row';
-
             const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
             const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
-
-            // Simple date formatting if available
             let dateStr = '';
             if (score.date) {
                 const d = new Date(score.date);
