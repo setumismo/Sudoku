@@ -844,65 +844,117 @@ class SudokuGame {
 
     // --- Leaderboard Logic ---
 
-    // --- Auth Logic ---
+    // --- AUTH LOGIC (STRICT UNIQUE NICKNAME) ---
 
     checkAuth() {
         if (!auth) return;
-        auth.onAuthStateChanged(async (user) => {
+        auth.onAuthStateChanged((user) => {
             if (user) {
-                console.log("Usuario autenticado:", user.uid);
-                // Get Nick
-                if (db) {
-                    try {
-                        const doc = await db.collection('users').doc(user.uid).get();
-                        if (doc.exists) {
-                            const data = doc.data();
-                            this.currentUserNick = data.nick;
-                            this.updateUserDisplay(this.currentUserNick);
-                        }
-                    } catch (e) {
-                        console.error("Error fetching user data:", e);
+                // User exists, but verify profile
+                db.collection('users').doc(user.uid).get().then((doc) => {
+                    if (doc.exists) {
+                        this.currentUserNick = doc.data().nick;
+                        console.log("Welcome back:", this.currentUserNick);
+                        this.updateUserDisplay();
+                    } else {
+                        // Phantom user (Auth but no DB). Treat as new.
+                        console.warn("Profile missing. Re-starting flow.");
+                        this.handleFirstLogin();
                     }
-                }
-                if (this.dom.loginModal) this.dom.loginModal.classList.add('hidden');
+                }).catch(e => {
+                    console.error("Auth Error:", e);
+                    // Fallback: Try to login again
+                    this.handleFirstLogin();
+                });
             } else {
-                console.log("No hay usuario. Mostrando login.");
-                if (this.dom.loginModal) this.dom.loginModal.classList.remove('hidden');
+                // No user
+                this.handleFirstLogin();
             }
         });
     }
 
-    async handleLogin(nick) {
-        if (!auth) return;
+    async handleFirstLogin() {
+        let isValid = false;
+        let finalNick = "";
+
+        while (!isValid) {
+            // 1. Prompt for Nick
+            const { value: nickname } = await Swal.fire({
+                title: 'Bienvenido a Sudoku',
+                text: 'Elige un nombre único para el ranking',
+                input: 'text',
+                inputPlaceholder: 'Tu Nick',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                confirmButtonText: 'Jugar',
+                inputValidator: (value) => {
+                    if (!value) return '¡Debes escribir un nombre!';
+                    if (value.length < 3) return 'Mínimo 3 caracteres';
+                    if (value.length > 12) return 'Máximo 12 caracteres';
+                }
+            });
+
+            if (nickname) {
+                Swal.showLoading(); // Show loading while checking
+                try {
+                    // 2. Check Uniqueness
+                    const snapshot = await db.collection('users').where('nick', '==', nickname).get();
+
+                    if (!snapshot.empty) {
+                        // Duplicate found
+                        await Swal.fire({
+                            icon: 'error',
+                            title: 'Nombre ocupado',
+                            text: `El nick "${nickname}" ya existe. Por favor elige otro.`
+                        });
+                    } else {
+                        // Unique!
+                        isValid = true;
+                        finalNick = nickname;
+                    }
+                } catch (error) {
+                    console.error("Check Error:", error);
+                    await Swal.fire("Error", "No se pudo verificar el nombre. Intenta de nuevo.", "error");
+                }
+            }
+        }
+
+        // 3. Create Account
         try {
             const result = await auth.signInAnonymously();
             const user = result.user;
 
-            // Create User Doc
-            if (db) {
-                await db.collection('users').doc(user.uid).set({
-                    uid: user.uid,
-                    nick: nick,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }
+            await db.collection('users').doc(user.uid).set({
+                uid: user.uid,
+                nick: finalNick,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
 
-            this.currentUserNick = nick;
-            this.updateUserDisplay(nick);
-            if (this.dom.loginModal) this.dom.loginModal.classList.add('hidden');
+            this.currentUserNick = finalNick;
+            this.updateUserDisplay();
+
+            Swal.fire({
+                icon: 'success',
+                title: `¡Bienvenido, ${finalNick}!`,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
 
         } catch (error) {
-            console.error("Error en login:", error);
-            alert("Error al iniciar sesión: " + error.message);
+            console.error("Login Fatal Error:", error);
+            Swal.fire("Error Crítico", "No se pudo crear la cuenta: " + error.message, "error");
         }
     }
 
-    updateUserDisplay(nick) {
-        if (this.dom.userDisplay) {
-            this.dom.userDisplay.textContent = `Hola, ${nick}`;
+    updateUserDisplay() {
+        if (this.dom.userDisplay && this.currentUserNick) {
+            this.dom.userDisplay.textContent = `Hola, ${this.currentUserNick}`;
         }
         if (this.dom.playerName) {
-            this.dom.playerName.value = nick; // Pre-fill in victory modal
+            this.dom.playerName.value = this.currentUserNick;
+            this.dom.playerName.disabled = true;
         }
     }
 
