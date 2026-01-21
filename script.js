@@ -18,7 +18,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Enable Persistence (Best practice)
+// Enable Persistence
 enableIndexedDbPersistence(db).catch((err) => {
     if (err.code == 'failed-precondition') {
         console.log('Persistence failed: Multiple tabs open');
@@ -199,73 +199,45 @@ class SudokuGame {
     }
 
     async handleFirstLogin() {
-        let isValid = false;
-        let finalNick = "";
-
-        while (!isValid) {
-            const { value: nickname } = await Swal.fire({
-                title: '¿Cómo quieres llamarte?',
-                input: 'text',
-                inputLabel: 'Tu nombre para el ranking',
-                inputPlaceholder: 'Escribe tu nick...',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                confirmButtonText: 'Entrar',
-                inputValidator: (value) => {
-                    if (!value) return '¡Necesitas escribir un nombre!';
-                    if (value.length > 12) return 'Máximo 12 caracteres';
-                }
-            });
-
-            if (nickname) {
-                // VALIDACIÓN: Consulta si existe
-                try {
-                    const q = query(collection(db, "users"), where("nick", "==", nickname));
-                    const querySnapshot = await getDocs(q);
-
-                    if (!querySnapshot.empty) {
-                        await Swal.fire({
-                            icon: 'error',
-                            title: 'Nombre en uso',
-                            text: 'Este nick ya existe. Por favor elige otro.',
-                            confirmButtonText: 'Intentar de nuevo'
-                        });
-                    } else {
-                        isValid = true;
-                        finalNick = nickname;
-                    }
-                } catch (error) {
-                    console.error("Error checking nick:", error);
-                    await Swal.fire("Error", "No se pudo verificar el nombre. Revisa tu internet.", "error");
-                }
+        // Simplified Login: Just ask for name and sign in. No unique check.
+        const { value: nickname } = await Swal.fire({
+            title: 'Bienvenido a Sudoku',
+            text: 'Elige un nombre para guardar tu progreso',
+            input: 'text',
+            inputPlaceholder: 'Tu Nick',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            confirmButtonText: 'Jugar',
+            inputValidator: (value) => {
+                if (!value) return '¡Necesitas escribir un nombre!';
+                if (value.length > 12) return 'Máximo 12 caracteres';
             }
-        }
+        });
 
-        // Si NO existe, proceder con login y guardar
-        try {
-            const userCredential = await signInAnonymously(auth);
-            const user = userCredential.user;
+        if (nickname) {
+            try {
+                const userCredential = await signInAnonymously(auth);
+                const user = userCredential.user;
 
-            await setDoc(doc(db, "users", user.uid), {
-                uid: user.uid,
-                nick: finalNick,
-                createdAt: serverTimestamp()
-            });
+                // Create/Update User Doc
+                await setDoc(doc(db, "users", user.uid), {
+                    uid: user.uid,
+                    nick: nickname,
+                    createdAt: serverTimestamp()
+                });
 
-            currentUserNick = finalNick;
-            this.updateUserDisplay();
+                currentUserNick = nickname;
+                this.updateUserDisplay();
 
-            const Toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000
-            });
-            Toast.fire({ icon: 'success', title: `Bienvenido, ${finalNick}` });
+                const Toast = Swal.mixin({
+                    toast: true, position: 'top-end', showConfirmButton: false, timer: 3000
+                });
+                Toast.fire({ icon: 'success', title: `Bienvenido, ${nickname}` });
 
-        } catch (error) {
-            console.error("Login Error:", error);
-            Swal.fire("Error", "Fallo en la autenticación.", "error");
+            } catch (error) {
+                console.error("Login Error:", error);
+                Swal.fire("Error", "Fallo en la autenticación.", "error");
+            }
         }
     }
 
@@ -275,7 +247,7 @@ class SudokuGame {
         }
         if (this.dom.playerName) {
             this.dom.playerName.value = currentUserNick;
-            this.dom.playerName.disabled = true; // Lock input since it's identity
+            this.dom.playerName.disabled = true;
         }
     }
 
@@ -655,7 +627,7 @@ class SudokuGame {
                 difficulty: this.difficulty,
                 date: date,
                 uid: auth.currentUser ? auth.currentUser.uid : null,
-                nick: currentUserNick // Linked validation
+                nick: currentUserNick
             });
             const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
             Toast.fire({ icon: 'success', title: 'Puntuación guardada' });
