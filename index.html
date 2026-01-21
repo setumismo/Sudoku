@@ -168,7 +168,16 @@
     </div>
 
     <!-- Login Modal -->
-    <!-- Firebase Compat SDKs (Restored for stability) -->
+    <div id="login-modal" class="modal hidden" style="z-index: 2000;">
+        <div class="modal-content">
+            <h2>Bienvenido a Sudoku</h2>
+            <p>Elige un nombre para guardar tu progreso.</p>
+            <input type="text" id="login-nick" placeholder="Tu Nick" maxlength="12" class="input-name">
+            <button id="btn-login" class="btn-primary">Jugar</button>
+        </div>
+    </div>
+
+    <!-- Firebase Compat SDKs (Works with file://) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
