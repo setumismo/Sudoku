@@ -289,6 +289,15 @@ class SudokuGame {
             });
         }
 
+        // Difficulty Select in Header
+        if (this.dom.difficultySelect) {
+            this.dom.difficultySelect.addEventListener('change', (e) => {
+                this.difficulty = e.target.value;
+                this.startNewGame();
+                // We do NOT call showGame() here as we are already there
+            });
+        }
+
         // --- GAME VIEW LISTENERS ---
 
         // Back to Menu
@@ -434,6 +443,14 @@ class SudokuGame {
         this.notesMode = false;
         this.dom.notesBtn.querySelector('.toggle-indicator').textContent = 'OFF';
         this.dom.notesBtn.classList.remove('active');
+
+        // Sync UI select with internal state
+        if (this.dom.difficultySelect) {
+            this.dom.difficultySelect.value = this.difficulty;
+        }
+        if (this.dom.level) {
+            this.dom.level.textContent = this.difficulty === 'easy' ? 'Fácil' : this.difficulty === 'medium' ? 'Medio' : 'Difícil';
+        }
 
         this.generateBoard();
         this.renderBoard();
