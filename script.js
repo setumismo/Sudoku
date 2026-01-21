@@ -183,8 +183,7 @@ class SudokuGame {
             // Old Controls kept in Game View
             // themeToggle: Removed from Game Header
             themeToggleHome: document.getElementById('theme-toggle-home'), // Home footer
-
-            soundToggle: document.getElementById('sound-toggle'), // In game header
+            soundToggle: document.getElementById('sound-toggle-home'), // Now in Home footer
             // leaderboardBtn: Removed from Game Header
             difficultySelect: document.getElementById('difficulty-select'), // In Game Header
 
@@ -374,12 +373,13 @@ class SudokuGame {
         });
 
         // Sound Toggle
+        // Sound Toggle (Home Footer)
         if (this.dom.soundToggle) {
             this.dom.soundToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const isEnabled = this.soundManager.toggle();
-                this.dom.soundToggle.querySelector('.sound-on').style.display = isEnabled ? 'block' : 'none';
-                this.dom.soundToggle.querySelector('.sound-off').style.display = isEnabled ? 'none' : 'block';
+                // Update Text Content directly since we are using text in button now
+                this.dom.soundToggle.textContent = isEnabled ? '🔊 Sonido' : '🔇 Silencio';
             });
         }
 
