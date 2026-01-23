@@ -526,11 +526,11 @@ class SudokuGame {
         this.fillDiagonalBoxes(grid);
         this.solveSudoku(grid);
         this.solution = [...grid];
-        // Difficulty Adjustment V2:
-        // Easy: Was 36. Still "too many numbers". Increase removal to 39.
-        // Medium: Was 40. Shift to 42 to maintain gap.
-        // Hard: Was 48. Still "too few numbers". Decrease removal to 45.
-        const attempts = this.difficulty === 'easy' ? 39 : this.difficulty === 'medium' ? 42 : 45;
+        // Difficulty Adjustment V3:
+        // Easy: Want 46 nums -> 81 - 46 = 35 holes.
+        // Medium: Want 40 nums -> 81 - 40 = 41 holes.
+        // Hard: Want 35 nums -> 81 - 35 = 46 holes.
+        const attempts = this.difficulty === 'easy' ? 35 : this.difficulty === 'medium' ? 41 : 46;
         this.removeNumbers(grid, attempts);
 
         this.board = grid.map((val, index) => ({
