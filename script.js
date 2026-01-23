@@ -433,12 +433,22 @@ class SudokuGame {
         });
 
         // Click outside to deselect
+        // Click outside to deselect
         document.addEventListener('click', (e) => {
             // Only if in game view
             if (this.dom.gameView.classList.contains('hidden')) return;
 
-            if (!e.target.closest('.app-container')) this.deselectAll();
-            else if (e.target.classList.contains('game-area')) this.deselectAll();
+            // If clicking inside board or numpad or controls, ignore (handled by their own listeners)
+            if (e.target.closest('.sudoku-board') ||
+                e.target.closest('.numpad') ||
+                e.target.closest('.controls-area') ||
+                e.target.closest('.header') || // Header buttons like Toggle/Pause
+                e.target.closest('.swal2-container')) { // SweetAlert
+                return;
+            }
+
+            // Otherwise, deselect
+            this.deselectAll();
         });
     }
 
@@ -696,7 +706,12 @@ class SudokuGame {
         if (this.selectedNumber !== null) {
             this.applyNumberToCell(index, this.selectedNumber);
         } else {
-            this.selectedCellIndex = index;
+            // Toggle selection if clicking the same cell
+            if (this.selectedCellIndex === index) {
+                this.selectedCellIndex = -1;
+            } else {
+                this.selectedCellIndex = index;
+            }
             this.renderBoard();
         }
     }
