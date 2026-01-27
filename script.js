@@ -620,6 +620,11 @@ class SudokuGame {
             this.dom.btnJoinChallenge.addEventListener('click', () => this.handleJoinChallenge());
         }
 
+        const btnExplore = document.getElementById('btn-explore-challenges');
+        if (btnExplore) {
+            btnExplore.addEventListener('click', () => this.showChallengeExplorer());
+        }
+
         const btnDailyRanking = document.getElementById('btn-daily-ranking');
         if (btnDailyRanking) {
             btnDailyRanking.addEventListener('click', () => this.showDailyLeaderboard());
@@ -1600,7 +1605,7 @@ class SudokuGame {
                 seed: seed,
                 difficulty: finalDiff,
                 createdBy: userId,
-                createdByNick: this.currentUserNick, // Save creator name
+                createdByNick: this.currentUserNick || 'Anónimo', // Ensure fallback
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
 
@@ -1757,17 +1762,17 @@ class SudokuGame {
 
     // ...
 
-    async showChallengeLeaderboard() {
-        if (!this.currentChallengeCode) return;
+    async showChallengeLeaderboard(codeArg = null) {
+        const targetCode = codeArg || this.currentChallengeCode;
+        if (!targetCode) return;
 
         const fetchAndRender = async () => {
             try {
-                // FIX: Only finished games
                 const snapshot = await db.collection('scores')
-                    .where('challengeId', '==', this.currentChallengeCode)
+                    .where('challengeId', '==', targetCode)
                     .where('status', '==', 'finished')
-                    .orderBy('seconds', 'asc') // Use SECONDS to match index
-                    .limit(50) // Match limit structure of working daily tab
+                    .orderBy('seconds', 'asc')
+                    .limit(50)
                     .get();
 
                 if (snapshot.empty) {
@@ -1775,7 +1780,7 @@ class SudokuGame {
                 }
 
                 let html = '<div style="display:flex; flex-direction:column; gap:15px; text-align:left;">';
-                html += '<div><h3 style="color:#38a169; border-bottom:2px solid #38a169; padding-bottom:5px; margin-bottom:10px;">🏆 Clasificación</h3>';
+                html += `<div><h3 style="color:#38a169; border-bottom:2px solid #38a169; padding-bottom:5px; margin-bottom:10px;">🏆 Clasificación (${targetCode})</h3>`;
 
                 snapshot.docs.forEach((doc, i) => {
                     const p = doc.data();
@@ -1809,54 +1814,166 @@ class SudokuGame {
             allowOutsideClick: false,
         }).then((result) => {
             if (result.isConfirmed) {
-                this.showChallengeLeaderboard();
+                this.showChallengeLeaderboard(targetCode);
             } else if (result.isDenied) {
-                // If it was a daily game, disable the button immediately on close to be sure
-                if (this.currentChallengeCode && this.currentChallengeCode.startsWith('DAILY-')) {
+                if (!codeArg && this.currentChallengeCode && this.currentChallengeCode.startsWith('DAILY-')) {
                     this.showHome();
-                } else {
-                    this.showHome(); // Or just close? User usually wants to go home after challenge
+                } else if (!codeArg) {
+                    this.showHome();
                 }
             }
         });
     }
-    getDailySeed(difficulty) {
-        const d = new Date();
+
+    async showChallengeExplorer() {
+        Swal.fire({
+            title: '📜 Últimos Retos',
+            html: '<div id="explorer-list" style="max-height:400px; overflow-y:auto; text-align:left;"><p style="text-align:center">Cargando...</p></div>',
+            showCloseButton: true,
+            showConfirmButton: false,
+            didOpen: async () => {
+                const container = document.getElementById('explorer-list');
+                try {
+                    const snapshot = await db.collection('challenges')
+                        .orderBy('createdAt', 'desc')
+                        .limit(10)
+                        .get();
+
+                    if (snapshot.empty) {
+                        container.innerHTML = '<p style="text-align:center; color:#aaa">No hay retos recientes.</p>';
+                        return;
+                    }
+
+                    let html = '';
+                    snapshot.forEach(doc => {
+                        const c = doc.data();
+                        let timeAgo = '';
+                        if (c.createdAt) {
+                            const date = c.createdAt.toDate();
+                            timeAgo = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        }
+
+                        const diffColor = c.difficulty === 'easy' ? '#48bb78' : c.difficulty === 'medium' ? '#ecc94b' : '#f56565';
+                        const diffName = c.difficulty === 'easy' ? 'Fácil' : c.difficulty === 'medium' ? 'Medio' : 'Difícil';
+
+                        html += `
+                             <div style="background:#fff; border:1px solid #eee; border-radius:10px; padding:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+                                 <div>
+                                     <div style="font-weight:bold; font-size:1.1em; color:#2d3748;">
+                                         ${c.code} 
+                                         <span style="font-size:0.8em; background:${diffColor}; color:white; padding:2px 6px; border-radius:4px; margin-left:5px;">${diffName}</span>
+                                     </div>
+                                     <div style="font-size:0.8em; color:#718096; margin-top:2px;">
+                                         Por: <b>${c.createdByNick || 'Anónimo'}</b> • ${timeAgo}
+                                     </div>
+                                 </div>
+                                 <div style="display:flex; gap:5px;">
+                                     <button onclick="window.gameInstance.startChallengeFromExplorer('${c.code}', '${c.seed}', '${c.difficulty}')" style="background:#4c6ef5; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;" title="Jugar">⚔️</button>
+                                     <button onclick="window.gameInstance.showChallengeLeaderboard('${c.code}')" style="background:#e2e8f0; color:#4a5568; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;" title="Ranking">🏆</button>
+                                 </div>
+                             </div>
+                         `;
+                    });
+                    container.innerHTML = html;
+
+                } catch (e) {
+                    console.error("Explorer error:", e);
+                    container.innerHTML = '<p style="color:red; text-align:center">Error cargando lista.</p>';
+                }
+            }
+        });
+    }
+
+    startChallengeFromExplorer(code, seed, diff) {
+        Swal.close();
+        this.difficulty = diff;
+        this.startNewGame(seed, code);
+        this.showGame();
+    }
+
+                let html = '<div style="display:flex; flex-direction:column; gap:15px; text-align:left;">';
+html += '<div><h3 style="color:#38a169; border-bottom:2px solid #38a169; padding-bottom:5px; margin-bottom:10px;">🏆 Clasificación</h3>';
+
+snapshot.docs.forEach((doc, i) => {
+    const p = doc.data();
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+    html += `
+                        <div style="display:flex; justify-content:space-between; padding:8px; background:#f7fafc; margin-bottom:5px; border-radius:8px; align-items:center;">
+                            <div><span style="font-size:1.2em; margin-right:8px;">${medal}</span> <b>${p.nick}</b></div>
+                            <span style="font-family:monospace; font-weight:bold; color:#4c6ef5;">${p.timeStr || '--:--'}</span>
+                        </div>`;
+});
+
+html += '</div></div>';
+return html;
+
+            } catch (e) {
+    console.error("Leaderboard Error:", e);
+    return '<p style="color:red; text-align:center;">Error cargando ranking.</p>';
+}
+        };
+
+const htmlContent = await fetchAndRender();
+
+Swal.fire({
+    title: '📊 Clasificación',
+    html: htmlContent,
+    showDenyButton: true,
+    confirmButtonText: '🔄 Actualizar',
+    denyButtonText: 'Cerrar',
+    confirmButtonColor: '#4c6ef5',
+    denyButtonColor: '#718096',
+    allowOutsideClick: false,
+}).then((result) => {
+    if (result.isConfirmed) {
+        this.showChallengeLeaderboard();
+    } else if (result.isDenied) {
+        // If it was a daily game, disable the button immediately on close to be sure
+        if (this.currentChallengeCode && this.currentChallengeCode.startsWith('DAILY-')) {
+            this.showHome();
+        } else {
+            this.showHome(); // Or just close? User usually wants to go home after challenge
+        }
+    }
+});
+    }
+getDailySeed(difficulty) {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
+    return `DAILY-${year}-${month}-${day}-${difficulty.toUpperCase()}`;
+}
+
+getDatesSinceMonday() {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day == 0 ? -6 : 1); // adjust when day is sunday
+    const monday = new Date(d.setDate(diff));
+
+    const dates = [];
+    const today = new Date();
+    // Reset hours to compare safely
+    today.setHours(0, 0, 0, 0);
+    monday.setHours(0, 0, 0, 0);
+
+    let current = new Date(monday);
+    while (current <= today) {
+        dates.push(new Date(current));
+        current.setDate(current.getDate() + 1);
+    }
+    return dates;
+}
+
+getWeeklyChallengeIds(difficulty) {
+    const dates = this.getDatesSinceMonday();
+    return dates.map(d => {
         const year = d.getFullYear();
         const month = (d.getMonth() + 1).toString().padStart(2, '0');
         const day = d.getDate().toString().padStart(2, '0');
         return `DAILY-${year}-${month}-${day}-${difficulty.toUpperCase()}`;
-    }
-
-    getDatesSinceMonday() {
-        const d = new Date();
-        const day = d.getDay();
-        const diff = d.getDate() - day + (day == 0 ? -6 : 1); // adjust when day is sunday
-        const monday = new Date(d.setDate(diff));
-
-        const dates = [];
-        const today = new Date();
-        // Reset hours to compare safely
-        today.setHours(0, 0, 0, 0);
-        monday.setHours(0, 0, 0, 0);
-
-        let current = new Date(monday);
-        while (current <= today) {
-            dates.push(new Date(current));
-            current.setDate(current.getDate() + 1);
-        }
-        return dates;
-    }
-
-    getWeeklyChallengeIds(difficulty) {
-        const dates = this.getDatesSinceMonday();
-        return dates.map(d => {
-            const year = d.getFullYear();
-            const month = (d.getMonth() + 1).toString().padStart(2, '0');
-            const day = d.getDate().toString().padStart(2, '0');
-            return `DAILY-${year}-${month}-${day}-${difficulty.toUpperCase()}`;
-        });
-    }
+    });
+}
 }
 
 // Start the game (Standard JS load)
