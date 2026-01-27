@@ -1935,3 +1935,12 @@ class SudokuGame {
 
 // Start the game (Standard JS load)
 window.gameInstance = new SudokuGame();
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('Service Worker Registered!', reg))
+            .catch(err => console.error('Service Worker Failed', err));
+    });
+}
