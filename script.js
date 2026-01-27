@@ -1587,6 +1587,7 @@ class SudokuGame {
                     .where('challengeId', '==', this.currentChallengeCode)
                     .where('status', '==', 'finished')
                     .orderBy('seconds', 'asc') // Use SECONDS to match index
+                    .limit(50) // Match limit structure of working daily tab
                     .get();
 
                 if (snapshot.empty) {
@@ -1611,7 +1612,7 @@ class SudokuGame {
 
             } catch (e) {
                 console.error("Leaderboard Error:", e);
-                return '<p style="color:red; text-align:center;">Error cargando ranking.<br><small>Posible falta de índice.</small></p>';
+                return `<p style="color:red; text-align:center;">Error: ${e.message}<br><small>Code: ${e.code}</small></p>`;
             }
         };
 
