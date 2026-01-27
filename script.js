@@ -236,6 +236,122 @@ class SudokuGame {
         this.dom.gameView.classList.add('hidden');
         this.updateThemeIcons();
         this.stopTimer();
+
+        // Check Daily Status checking
+        this.checkDailyStatus();
+    }
+
+    async checkDailyStatus() {
+        if (!auth || !auth.currentUser || !db) return;
+
+        const difficulties = ['easy', 'medium', 'hard'];
+        for (const diff of difficulties) {
+            const dailySeed = this.getDailySeed(diff);
+            // Check based on known seed algo
+
+            try {
+                // We check if we have a local record FIRST for speed/offline
+                const localScores = JSON.parse(localStorage.getItem('sudokuResults')) || {};
+                const todayStr = new Date().toLocaleDateString();
+                // Local storage check is tricky because it doesn't store ChallengeID explicitly in old format
+                // So reliable check is Firestore or just check if we have a score with today's date? 
+                // Better: check Firestore since we want to enforce unique daily play.
+
+                const snapshot = await db.collection('scores')
+                    .where('uid', '==', auth.currentUser.uid)
+                    .where('challengeId', '==', dailySeed)
+                    .limit(1)
+                    .get();
+
+                if (!snapshot.empty) {
+                    const btn = document.querySelector(`.menu-btn.${diff}[data-action="start"]`);
+                    if (btn) {
+                        const data = snapshot.docs[0].data();
+                        btn.disabled = true;
+                        btn.classList.add('completed-daily');
+                        btn.innerHTML = `
+                            <span class="btn-icon">✅</span>
+                            <div style="display:flex; flex-direction:column; line-height:1.2;">
+                                <span>${diff === 'easy' ? 'Fácil' : diff === 'medium' ? 'Medio' : 'Difícil'}</span>
+                                <span style="font-size:0.8em; font-weight:normal;">${data.timeStr}</span>
+                            </div>
+                        `;
+                        btn.style.borderColor = '#48bb78';
+                        btn.style.color = '#48bb78';
+                        btn.style.opacity = '0.8';
+                        btn.style.cursor = 'default';
+                    }
+                }
+            } catch (e) {
+                console.log("Error checking daily status:", e);
+            }
+        }
+    }
+
+    showDailyLeaderboard() {
+        Swal.fire({
+            title: '📅 Ranking Diario',
+            html: `
+                <div class="tabs" style="margin-bottom:15px; display:flex; gap:10px; justify-content:center;">
+                    <button id="tab-daily-easy" class="tab-btn active" onclick="window.gameInstance.loadDailyTab('easy')">Fácil</button>
+                    <button id="tab-daily-medium" class="tab-btn" onclick="window.gameInstance.loadDailyTab('medium')">Medio</button>
+                    <button id="tab-daily-hard" class="tab-btn" onclick="window.gameInstance.loadDailyTab('hard')">Difícil</button>
+                </div>
+                <div id="daily-list" style="max-height:300px; overflow-y:auto; text-align:left;">
+                    <p style="text-align:center;">Cargando...</p>
+                </div>
+            `,
+            showConfirmButton: false,
+            showCloseButton: true,
+            didOpen: () => {
+                this.loadDailyTab('easy');
+            }
+        });
+    }
+
+    async loadDailyTab(diff) {
+        // Update tabs visual
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        const activeBtn = document.getElementById(`tab-daily-${diff}`);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        const listContainer = document.getElementById('daily-list');
+        listContainer.innerHTML = '<p style="text-align:center; color:#888;">Cargando...</p>';
+
+        const dailySeed = this.getDailySeed(diff);
+
+        try {
+            const snapshot = await db.collection('scores')
+                .where('challengeId', '==', dailySeed)
+                .orderBy('seconds', 'asc')
+                .limit(20)
+                .get();
+
+            if (snapshot.empty) {
+                listContainer.innerHTML = '<p style="text-align:center; padding:20px; color:#aaa;">Nadie ha completado este nivel hoy.</p>';
+                return;
+            }
+
+            let html = '';
+            snapshot.docs.forEach((doc, index) => {
+                const s = doc.data();
+                const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+                html += `
+                    <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; align-items:center;">
+                        <div>
+                            <span style="font-size:1.2em; margin-right:8px;">${medal}</span>
+                            <span style="font-weight:bold; color:#2d3748;">${s.name || s.nick || 'Anónimo'}</span>
+                        </div>
+                        <span style="font-family:monospace; color:#4c6ef5; font-weight:bold;">${s.timeStr}</span>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+
+        } catch (e) {
+            console.error(e);
+            listContainer.innerHTML = '<p style="text-align:center; color:red;">Error cargando ranking (posiblemente falta índice).</p>';
+        }
     }
 
     showGame() {
@@ -266,8 +382,12 @@ class SudokuGame {
         this.dom.difficultyButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 const diff = btn.dataset.diff;
+                if (btn.disabled) return; // Prevent clicking if already played
+
+                const dailySeed = this.getDailySeed(diff);
                 this.difficulty = diff;
-                this.startNewGame();
+                // Pass the dailySeed as the seed, and ALSO as the challengeCode (logic reused for ID)
+                this.startNewGame(dailySeed, dailySeed);
                 this.showGame();
                 if (this.dom.difficultySelect) this.dom.difficultySelect.value = diff;
                 if (this.dom.level) this.dom.level.textContent = diff === 'easy' ? 'Fácil' : diff === 'medium' ? 'Medio' : 'Difícil';
@@ -319,6 +439,11 @@ class SudokuGame {
 
         if (this.dom.btnJoinChallenge) {
             this.dom.btnJoinChallenge.addEventListener('click', () => this.handleJoinChallenge());
+        }
+
+        const btnDailyRanking = document.getElementById('btn-daily-ranking');
+        if (btnDailyRanking) {
+            btnDailyRanking.addEventListener('click', () => this.showDailyLeaderboard());
         }
 
         // --- GAME VIEW LISTENERS ---
@@ -1099,6 +1224,12 @@ class SudokuGame {
                     difficulty: this.difficulty,
                     date: date
                 };
+
+                // If it's a daily challenge, add the ID
+                if (this.currentChallengeCode && this.currentChallengeCode.startsWith('DAILY-')) {
+                    scoreData.challengeId = this.currentChallengeCode;
+                }
+
                 if (auth && auth.currentUser) {
                     scoreData.uid = auth.currentUser.uid;
                 }
@@ -1491,7 +1622,14 @@ class SudokuGame {
             }
         });
     }
+    getDailySeed(difficulty) {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+        const day = d.getDate().toString().padStart(2, '0');
+        return `DAILY-${year}-${month}-${day}-${difficulty.toUpperCase()}`;
+    }
 }
 
 // Start the game (Standard JS load)
-new SudokuGame();
+window.gameInstance = new SudokuGame();
