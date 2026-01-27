@@ -237,33 +237,53 @@ class SudokuGame {
         this.updateThemeIcons();
         this.stopTimer();
 
-        // Check Daily Status checking
+        // Optimistic Update: If we just finished a daily game, mark it immediately
+        if (this.isGameOver && this.currentChallengeCode && this.currentChallengeCode.startsWith('DAILY-')) {
+            const parts = this.currentChallengeCode.split('-'); // DAILY, YYYY, MM, DD, DIFF
+            const diff = parts[parts.length - 1].toLowerCase();
+            const btn = document.querySelector(`.menu-btn.${diff}[data-action="start"]`);
+            if (btn) {
+                btn.disabled = true;
+                btn.classList.add('completed-daily');
+                btn.innerHTML = `
+                    <span class="btn-icon">✅</span>
+                    <div style="display:flex; flex-direction:column; line-height:1.2;">
+                        <span>${diff === 'easy' ? 'Fácil' : diff === 'medium' ? 'Medio' : 'Difícil'}</span>
+                        <span style="font-size:0.8em; font-weight:normal;">Completado</span>
+                    </div>
+                 `;
+                btn.style.borderColor = '#48bb78';
+                btn.style.color = '#48bb78';
+                btn.style.opacity = '0.8';
+                btn.style.cursor = 'default';
+            }
+        }
+
+        // Check Daily Status checking (Server validaton)
         this.checkDailyStatus();
     }
 
     async checkDailyStatus() {
         if (!auth || !auth.currentUser || !db) return;
 
+        const uid = auth.currentUser.uid;
+
         const difficulties = ['easy', 'medium', 'hard'];
         for (const diff of difficulties) {
             const dailySeed = this.getDailySeed(diff);
-            // Check based on known seed algo
+            // DEBUG LOGS
+            console.log(`Checking status for ${diff}:`, { uid, dailySeed });
 
             try {
                 // We check if we have a local record FIRST for speed/offline
-                const localScores = JSON.parse(localStorage.getItem('sudokuResults')) || {};
-                const todayStr = new Date().toLocaleDateString();
-                // Local storage check is tricky because it doesn't store ChallengeID explicitly in old format
-                // So reliable check is Firestore or just check if we have a score with today's date? 
-                // Better: check Firestore since we want to enforce unique daily play.
-
                 const snapshot = await db.collection('scores')
-                    .where('uid', '==', auth.currentUser.uid)
+                    .where('uid', '==', uid)
                     .where('challengeId', '==', dailySeed)
                     .limit(1)
                     .get();
 
                 if (!snapshot.empty) {
+                    console.log(`Found existing score for ${diff}`);
                     const btn = document.querySelector(`.menu-btn.${diff}[data-action="start"]`);
                     if (btn) {
                         const data = snapshot.docs[0].data();
@@ -281,6 +301,8 @@ class SudokuGame {
                         btn.style.opacity = '0.8';
                         btn.style.cursor = 'default';
                     }
+                } else {
+                    console.log(`No score found for ${diff}`);
                 }
             } catch (e) {
                 console.log("Error checking daily status:", e);
