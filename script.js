@@ -1891,89 +1891,46 @@ class SudokuGame {
         this.showGame();
     }
 
-                let html = '<div style="display:flex; flex-direction:column; gap:15px; text-align:left;">';
-html += '<div><h3 style="color:#38a169; border-bottom:2px solid #38a169; padding-bottom:5px; margin-bottom:10px;">🏆 Clasificación</h3>';
 
-snapshot.docs.forEach((doc, i) => {
-    const p = doc.data();
-    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
-    html += `
-                        <div style="display:flex; justify-content:space-between; padding:8px; background:#f7fafc; margin-bottom:5px; border-radius:8px; align-items:center;">
-                            <div><span style="font-size:1.2em; margin-right:8px;">${medal}</span> <b>${p.nick}</b></div>
-                            <span style="font-family:monospace; font-weight:bold; color:#4c6ef5;">${p.timeStr || '--:--'}</span>
-                        </div>`;
-});
 
-html += '</div></div>';
-return html;
 
-            } catch (e) {
-    console.error("Leaderboard Error:", e);
-    return '<p style="color:red; text-align:center;">Error cargando ranking.</p>';
-}
-        };
-
-const htmlContent = await fetchAndRender();
-
-Swal.fire({
-    title: '📊 Clasificación',
-    html: htmlContent,
-    showDenyButton: true,
-    confirmButtonText: '🔄 Actualizar',
-    denyButtonText: 'Cerrar',
-    confirmButtonColor: '#4c6ef5',
-    denyButtonColor: '#718096',
-    allowOutsideClick: false,
-}).then((result) => {
-    if (result.isConfirmed) {
-        this.showChallengeLeaderboard();
-    } else if (result.isDenied) {
-        // If it was a daily game, disable the button immediately on close to be sure
-        if (this.currentChallengeCode && this.currentChallengeCode.startsWith('DAILY-')) {
-            this.showHome();
-        } else {
-            this.showHome(); // Or just close? User usually wants to go home after challenge
-        }
-    }
-});
-    }
-getDailySeed(difficulty) {
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = (d.getMonth() + 1).toString().padStart(2, '0');
-    const day = d.getDate().toString().padStart(2, '0');
-    return `DAILY-${year}-${month}-${day}-${difficulty.toUpperCase()}`;
-}
-
-getDatesSinceMonday() {
-    const d = new Date();
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day == 0 ? -6 : 1); // adjust when day is sunday
-    const monday = new Date(d.setDate(diff));
-
-    const dates = [];
-    const today = new Date();
-    // Reset hours to compare safely
-    today.setHours(0, 0, 0, 0);
-    monday.setHours(0, 0, 0, 0);
-
-    let current = new Date(monday);
-    while (current <= today) {
-        dates.push(new Date(current));
-        current.setDate(current.getDate() + 1);
-    }
-    return dates;
-}
-
-getWeeklyChallengeIds(difficulty) {
-    const dates = this.getDatesSinceMonday();
-    return dates.map(d => {
+    getDailySeed(difficulty) {
+        const d = new Date();
         const year = d.getFullYear();
         const month = (d.getMonth() + 1).toString().padStart(2, '0');
         const day = d.getDate().toString().padStart(2, '0');
         return `DAILY-${year}-${month}-${day}-${difficulty.toUpperCase()}`;
-    });
-}
+    }
+
+    getDatesSinceMonday() {
+        const d = new Date();
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day == 0 ? -6 : 1); // adjust when day is sunday
+        const monday = new Date(d.setDate(diff));
+
+        const dates = [];
+        const today = new Date();
+        // Reset hours to compare safely
+        today.setHours(0, 0, 0, 0);
+        monday.setHours(0, 0, 0, 0);
+
+        let current = new Date(monday);
+        while (current <= today) {
+            dates.push(new Date(current));
+            current.setDate(current.getDate() + 1);
+        }
+        return dates;
+    }
+
+    getWeeklyChallengeIds(difficulty) {
+        const dates = this.getDatesSinceMonday();
+        return dates.map(d => {
+            const year = d.getFullYear();
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            const day = d.getDate().toString().padStart(2, '0');
+            return `DAILY-${year}-${month}-${day}-${difficulty.toUpperCase()}`;
+        });
+    }
 }
 
 // Start the game (Standard JS load)
