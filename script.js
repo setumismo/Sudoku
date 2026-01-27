@@ -290,46 +290,69 @@ class SudokuGame {
 
     showDailyLeaderboard() {
         Swal.fire({
-            title: '📅 Ranking Diario',
+            title: '🏆 Clasificación',
             html: `
-                <div class="tabs" style="margin-bottom:15px; display:flex; gap:10px; justify-content:center;">
-                    <button id="tab-daily-easy" class="tab-btn active" onclick="window.gameInstance.loadDailyTab('easy')">Fácil</button>
-                    <button id="tab-daily-medium" class="tab-btn" onclick="window.gameInstance.loadDailyTab('medium')">Medio</button>
-                    <button id="tab-daily-hard" class="tab-btn" onclick="window.gameInstance.loadDailyTab('hard')">Difícil</button>
+                <div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
+                     <button id="view-mode-daily" class="tab-btn active" style="flex:1;" onclick="window.gameInstance.switchRankingMode('daily')">📅 Diario</button>
+                     <button id="view-mode-weekly" class="tab-btn" style="flex:1;" onclick="window.gameInstance.switchRankingMode('weekly')">📅 Semanal</button>
                 </div>
-                <div id="daily-list" style="max-height:300px; overflow-y:auto; text-align:left;">
+                
+                <div class="tabs" style="margin-bottom:15px; display:flex; gap:10px; justify-content:center;">
+                    <button id="tab-daily-easy" class="tab-btn active" onclick="window.gameInstance.loadRankingTab('easy')">Fácil</button>
+                    <button id="tab-daily-medium" class="tab-btn" onclick="window.gameInstance.loadRankingTab('medium')">Medio</button>
+                    <button id="tab-daily-hard" class="tab-btn" onclick="window.gameInstance.loadRankingTab('hard')">Difícil</button>
+                </div>
+
+                <div id="ranking-list" style="max-height:300px; overflow-y:auto; text-align:left;">
                     <p style="text-align:center;">Cargando...</p>
                 </div>
             `,
             showConfirmButton: false,
             showCloseButton: true,
             didOpen: () => {
-                this.loadDailyTab('easy');
+                this.currentRankingMode = 'daily';
+                this.currentRankingDiff = 'easy';
+                this.loadRankingTab('easy');
             }
         });
     }
 
-    async loadDailyTab(diff) {
+    switchRankingMode(mode) {
+        this.currentRankingMode = mode;
+        document.getElementById('view-mode-daily').classList.toggle('active', mode === 'daily');
+        document.getElementById('view-mode-weekly').classList.toggle('active', mode === 'weekly');
+        this.loadRankingTab(this.currentRankingDiff);
+    }
+
+    async loadRankingTab(diff) {
+        this.currentRankingDiff = diff;
         // Update tabs visual
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tabs .tab-btn').forEach(b => b.classList.remove('active'));
         const activeBtn = document.getElementById(`tab-daily-${diff}`);
         if (activeBtn) activeBtn.classList.add('active');
 
-        const listContainer = document.getElementById('daily-list');
+        const listContainer = document.getElementById('ranking-list');
         listContainer.innerHTML = '<p style="text-align:center; color:#888;">Cargando...</p>';
 
-        const dailySeed = this.getDailySeed(diff);
+        if (this.currentRankingMode === 'daily') {
+            await this.loadDailyData(diff, listContainer);
+        } else {
+            await this.loadWeeklyData(diff, listContainer);
+        }
+    }
 
+    async loadDailyData(diff, container) {
+        const dailySeed = this.getDailySeed(diff);
         try {
             const snapshot = await db.collection('scores')
                 .where('challengeId', '==', dailySeed)
                 .where('status', '==', 'finished')
                 .orderBy('seconds', 'asc')
-                .limit(20)
+                .limit(50)
                 .get();
 
             if (snapshot.empty) {
-                listContainer.innerHTML = '<p style="text-align:center; padding:20px; color:#aaa;">Nadie ha completado este nivel hoy.</p>';
+                container.innerHTML = '<p style="text-align:center; padding:20px; color:#aaa;">Nadie ha completado este nivel hoy.</p>';
                 return;
             }
 
@@ -347,12 +370,145 @@ class SudokuGame {
                     </div>
                 `;
             });
-            listContainer.innerHTML = html;
+            container.innerHTML = html;
+        } catch (e) {
+            console.error(e);
+            container.innerHTML = `<p style="color:red; text-align:center;">Error: ${e.message}</p>`;
+        }
+    }
+
+    async loadWeeklyData(diff, container) {
+        const ids = this.getWeeklyChallengeIds(diff);
+        const dates = this.getDatesSinceMonday();
+
+        try {
+            // Fetch ALL scores for the week
+            const snapshot = await db.collection('scores')
+                .where('challengeId', 'in', ids)
+                .where('status', '==', 'finished')
+                .get();
+
+            // 1. Process Max Times per Day (for penalties)
+            const dayMaxTimes = {}; // { challengeId: maxSeconds }
+            const dayStats = {}; // { challengeId: { count: 0, date: Date } }
+
+            // Init stats
+            ids.forEach((id, idx) => {
+                dayStats[id] = { date: dates[idx], present: false };
+                dayMaxTimes[id] = 1800; // Default penalty 30 mins
+            });
+
+            snapshot.docs.forEach(doc => {
+                const d = doc.data();
+                const cid = d.challengeId;
+                if (dayStats[cid]) dayStats[cid].present = true;
+                // Find worst time (max) to use as penalty basis? 
+                // Or user requested: "busca el 'Peor Tiempo' registrado por cualquier usuario (MaxTime)"
+                if (d.seconds > dayMaxTimes[cid] || dayMaxTimes[cid] === 1800) {
+                    dayMaxTimes[cid] = d.seconds;
+                }
+            });
+
+            // 2. Group by User
+            const users = {}; // { uid: { nick: '', totalSeconds: 0, days: {}, penalized: false } }
+
+            snapshot.docs.forEach(doc => {
+                const d = doc.data();
+                const uid = d.uid || d.nick; // Fallback to nick if uid missing (legacy)
+
+                if (!users[uid]) {
+                    users[uid] = {
+                        nick: d.nick || d.name,
+                        totalSeconds: 0,
+                        days: {},
+                        penalized: false,
+                        uid: uid
+                    };
+                }
+                users[uid].days[d.challengeId] = d.seconds;
+            });
+
+            // 3. Calc Totals & Penalties
+            const rankedUsers = Object.values(users).map(u => {
+                let total = 0;
+                let isPenalized = false;
+
+                ids.forEach(id => {
+                    if (u.days[id]) {
+                        total += u.days[id];
+                    } else {
+                        // PINALTY
+                        total += dayMaxTimes[id];
+                        isPenalized = true;
+                        u.days[id] = -1; // Mark as missing
+                    }
+                });
+
+                u.totalSeconds = total;
+                u.penalized = isPenalized;
+                return u;
+            });
+
+            // 4. Sort
+            rankedUsers.sort((a, b) => a.totalSeconds - b.totalSeconds);
+
+            // 5. Render
+            if (rankedUsers.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding:20px; color:#aaa;">No hay datos esta semana.</p>';
+                return;
+            }
+
+            let html = '<div class="accordion-list">';
+            rankedUsers.forEach((u, i) => {
+                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+                const timeStr = this.formatTime(u.totalSeconds);
+                const color = u.penalized ? '#e53e3e' : '#2d3748';
+                const warning = u.penalized ? '⚠️' : '';
+
+                // Details HTML
+                let details = '';
+                ids.forEach((id, idx) => {
+                    const dayName = dates[idx].toLocaleDateString('es-ES', { weekday: 'long' });
+                    const val = u.days[id];
+                    const valStr = val === -1
+                        ? `<span style="color:#e53e3e">No jugado (+${this.formatTime(dayMaxTimes[id])})</span>`
+                        : this.formatTime(val);
+                    details += `<div style="display:flex; justify-content:space-between; font-size:0.9em; padding:2px 0;">
+                        <span style="text-transform:capitalize">${dayName}</span>
+                        <span>${valStr}</span>
+                    </div>`;
+                });
+
+                html += `
+                    <div class="accordion-item" style="border-bottom:1px solid #eee;">
+                        <div class="accordion-header" style="display:flex; justify-content:space-between; padding:10px; cursor:pointer;" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                            <div style="display:flex; align-items:center;">
+                                <span style="font-size:1.2em; margin-right:8px; width:25px;">${medal}</span>
+                                <b>${u.nick}</b>
+                            </div>
+                            <div style="text-align:right;">
+                                <span style="font-family:monospace; font-weight:bold; color:${color};">${timeStr}${warning}</span>
+                            </div>
+                        </div>
+                        <div class="accordion-content hidden" style="padding:5px 10px 10px 45px; background:#f9f9f9; color:#666;">
+                            ${details}
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
 
         } catch (e) {
             console.error(e);
-            listContainer.innerHTML = '<p style="text-align:center; color:red;">Error cargando ranking (posiblemente falta índice).</p>';
+            container.innerHTML = `<p style="color:red; text-align:center;">Error: ${e.message}</p>`;
         }
+    }
+
+    formatTime(seconds) {
+        const min = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const sec = (seconds % 60).toString().padStart(2, '0');
+        return `${min}:${sec}`;
     }
 
     showGame() {
@@ -1646,6 +1802,36 @@ class SudokuGame {
         const month = (d.getMonth() + 1).toString().padStart(2, '0');
         const day = d.getDate().toString().padStart(2, '0');
         return `DAILY-${year}-${month}-${day}-${difficulty.toUpperCase()}`;
+    }
+
+    getDatesSinceMonday() {
+        const d = new Date();
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day == 0 ? -6 : 1); // adjust when day is sunday
+        const monday = new Date(d.setDate(diff));
+
+        const dates = [];
+        const today = new Date();
+        // Reset hours to compare safely
+        today.setHours(0, 0, 0, 0);
+        monday.setHours(0, 0, 0, 0);
+
+        let current = new Date(monday);
+        while (current <= today) {
+            dates.push(new Date(current));
+            current.setDate(current.getDate() + 1);
+        }
+        return dates;
+    }
+
+    getWeeklyChallengeIds(difficulty) {
+        const dates = this.getDatesSinceMonday();
+        return dates.map(d => {
+            const year = d.getFullYear();
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            const day = d.getDate().toString().padStart(2, '0');
+            return `DAILY-${year}-${month}-${day}-${difficulty.toUpperCase()}`;
+        });
     }
 }
 
