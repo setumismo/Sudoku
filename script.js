@@ -1597,7 +1597,7 @@ class SudokuGame {
                 let html = '<div style="display:flex; flex-direction:column; gap:15px; text-align:left;">';
                 html += '<div><h3 style="color:#38a169; border-bottom:2px solid #38a169; padding-bottom:5px; margin-bottom:10px;">🏆 Clasificación</h3>';
 
-                snapshot.forEach((doc, i) => {
+                snapshot.docs.forEach((doc, i) => {
                     const p = doc.data();
                     const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
                     html += `
@@ -1612,7 +1612,7 @@ class SudokuGame {
 
             } catch (e) {
                 console.error("Leaderboard Error:", e);
-                return `<p style="color:red; text-align:center;">Error: ${e.message}<br><small>Code: ${e.code}</small></p>`;
+                return '<p style="color:red; text-align:center;">Error cargando ranking.</p>';
             }
         };
 
