@@ -1,0 +1,112 @@
+/* Glassmorphism Redesign */
+.glass-card {
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
+    padding: 20px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    color: white;
+    transition: transform 0.2s;
+    margin-bottom: 20px;
+}
+
+.glass-card h3 {
+    color: white;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.9;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.glass-card:active {
+    transform: scale(0.99);
+}
+
+/* Updated Menu Buttons for Glass */
+.menu-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 16px;
+    padding: 15px;
+    color: var(--text-primary);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    min-height: 90px;
+    flex: 1;
+}
+
+.menu-btn.wide {
+    flex-direction: row;
+    min-height: 50px;
+    background: rgba(255, 255, 255, 0.7);
+    color: #1a202c;
+    /* Ensure contrast */
+}
+
+/* Specific button colors (subtle tints) */
+.menu-btn.easy {
+    background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+    color: #234e52;
+}
+
+.menu-btn.medium {
+    background: linear-gradient(135deg, #fafca4 0%, #f6e05e 100%);
+    color: #744210;
+}
+
+.menu-btn.hard {
+    background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+    color: #822727;
+}
+
+.menu-btn.secondary {
+    background: rgba(255, 255, 255, 0.85);
+    color: #4a5568;
+}
+
+.menu-btn:active {
+    transform: scale(0.95);
+    opacity: 0.9;
+}
+
+.btn-icon {
+    font-size: 1.8rem;
+    margin-bottom: 2px;
+}
+
+.wide .btn-icon {
+    font-size: 1.2rem;
+    margin-bottom: 0;
+    margin-right: 8px;
+}
+
+/* Home Layout adjustments */
+#home-view {
+    padding: 20px;
+    justify-content: center;
+    /* Center vertically if space allows */
+}
+
+@media (max-width: 500px) {
+    #home-view {
+        justify-content: flex-start;
+        padding-top: 40px;
+        /* More breathing room top */
+    }
+}
