@@ -279,6 +279,7 @@ class SudokuGame {
                 const snapshot = await db.collection('scores')
                     .where('uid', '==', uid)
                     .where('challengeId', '==', dailySeed)
+                    .where('status', '==', 'finished') // FIX: Only block if actually finished
                     .limit(1)
                     .get();
 
