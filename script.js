@@ -1269,6 +1269,7 @@ class SudokuGame {
                         this.currentUserNick = doc.data().nick;
                         console.log("Welcome back:", this.currentUserNick);
                         this.updateUserDisplay();
+                        this.checkDailyStatus(); // Check if played today AFTER auth ready
                     } else {
                         console.warn("Profile missing. Re-starting flow.");
                         this.handleFirstLogin();
