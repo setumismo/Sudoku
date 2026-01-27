@@ -1543,6 +1543,7 @@ class SudokuGame {
             await db.collection('scores').doc(this.currentScoreId).update({
                 status: 'finished',
                 time: this.timer,
+                seconds: this.timer, // Mirror for index compatibility
                 timeStr: this.dom.timer.textContent,
                 finishedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -1585,7 +1586,7 @@ class SudokuGame {
                 const snapshot = await db.collection('scores')
                     .where('challengeId', '==', this.currentChallengeCode)
                     .where('status', '==', 'finished')
-                    .orderBy('time', 'asc') // Ensure you have index for challengeId + status + time
+                    .orderBy('seconds', 'asc') // Use SECONDS to match index
                     .get();
 
                 if (snapshot.empty) {
