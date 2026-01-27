@@ -1705,6 +1705,7 @@ class SudokuGame {
             const docRef = await db.collection('scores').add({
                 challengeId: this.currentChallengeCode,
                 nick: this.currentUserNick,
+                uid: (auth.currentUser ? auth.currentUser.uid : null), // Fix: Save UID for daily check
                 status: 'playing',
                 time: null,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
