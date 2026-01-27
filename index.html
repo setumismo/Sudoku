@@ -31,11 +31,11 @@
                 </div>
             </header>
 
-            <main class="home-menu">
+            <main class="home-menu" style="display: flex; flex-direction: column; gap: 20px;">
                 <!-- Sección 1: Copa Semanal -->
-                <section class="menu-section">
-                    <h3 class="section-title">🏆 Copa Semanal</h3>
-                    <div class="menu-grid">
+                <section class="glass-card">
+                    <h3>🏆 Copa Semanal</h3>
+                    <div class="menu-row" style="display: flex; gap: 10px;">
                         <button class="menu-btn easy" data-action="start" data-diff="easy">
                             <span class="btn-icon">🟢</span>
                             <span class="btn-text">Fácil</span>
@@ -49,17 +49,17 @@
                             <span class="btn-text">Difícil</span>
                         </button>
                     </div>
-                    <div style="margin-top: 15px;">
-                        <button class="menu-btn secondary wide" id="btn-daily-ranking" style="width: 100%;">
+                    <div>
+                        <button class="menu-btn wide" id="btn-daily-ranking" style="width: 100%; margin-top: 10px;">
                             <span class="btn-icon">📅</span> Ver Ranking de Hoy
                         </button>
                     </div>
                 </section>
 
-                <!-- Sección 2: Social -->
-                <section class="menu-section">
-                    <h3 class="section-title">👻 Reto Fantasma</h3>
-                    <div class="menu-row">
+                <!-- Sección 2: Reto Fantasma -->
+                <section class="glass-card">
+                    <h3>👻 Reto Fantasma</h3>
+                    <div class="menu-row" style="display: flex; gap: 10px;">
                         <button class="menu-btn secondary" id="btn-create-challenge">
                             <span class="btn-icon">⚔️</span> Crear
                         </button>
@@ -67,30 +67,35 @@
                             <span class="btn-icon">🔗</span> Unirse
                         </button>
                     </div>
-                    <div style="margin-top: 10px;">
-                        <button class="menu-btn secondary wide" id="btn-explore-challenges" style="width: 100%;">
+                    <div>
+                        <button class="menu-btn secondary wide" id="btn-explore-challenges"
+                            style="width: 100%; margin-top: 10px;">
                             <span class="btn-icon">📜</span> Explorar Retos
                         </button>
                     </div>
                 </section>
 
-                <!-- Sección 3: Práctica -->
-                <section class="menu-section">
-                    <div class="menu-row">
-                        <button class="menu-btn wide" id="btn-free-play" data-action="free-play">
-                            <span class="btn-icon">🎮</span>
-                            <span class="btn-text">Juego Libre</span>
-                        </button>
-                        <button class="menu-btn wide" id="btn-home-leaderboard" data-action="leaderboard">
-                            <span class="btn-icon">🏆</span>
-                            <span class="btn-text">Ranking</span>
-                        </button>
-                    </div>
+                <!-- Sección 3: Footer (Juego Libre / General) -->
+                <section class="glass-card"
+                    style="flex-direction: row; align-items: center; justify-content: space-between; padding: 15px;">
+                    <button class="menu-btn secondary wide" id="btn-free-play" data-action="free-play"
+                        style="flex: 1; margin-right: 10px; background: rgba(255,255,255,0.95); min-height: 50px;">
+                        <span class="btn-icon">🎮</span> Juego Libre
+                    </button>
+                    <button class="menu-btn secondary wide" id="btn-home-leaderboard" data-action="leaderboard"
+                        style="flex: 1; background: rgba(255,255,255,0.95); min-height: 50px;">
+                        <span class="btn-icon">🏆</span> Ranking
+                    </button>
                 </section>
 
-                <div class="home-footer" style="gap: 15px;">
-                    <button id="theme-toggle-home" class="icon-btn-large">🌓 Tema</button>
-                    <button id="sound-toggle-home" class="icon-btn-large">
+                <!-- Controles Footer -->
+                <div style="display: flex; justify-content: space-between; margin-top: auto; padding: 0 10px;">
+                    <button id="theme-toggle-home"
+                        style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); padding: 8px 16px; border-radius: 20px; color: white; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        🌓 Tema
+                    </button>
+                    <button id="sound-toggle-home"
+                        style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); padding: 8px 16px; border-radius: 20px; color: white; display: flex; align-items: center; gap: 6px; cursor: pointer;">
                         🔊 Sonido
                     </button>
                 </div>
