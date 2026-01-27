@@ -323,6 +323,7 @@ class SudokuGame {
         try {
             const snapshot = await db.collection('scores')
                 .where('challengeId', '==', dailySeed)
+                .where('status', '==', 'finished')
                 .orderBy('seconds', 'asc')
                 .limit(20)
                 .get();
@@ -450,6 +451,10 @@ class SudokuGame {
 
         // Back to Menu
         this.dom.btnBackHome.addEventListener('click', () => {
+            if (this.isGameOver) {
+                this.showHome();
+                return;
+            }
             Swal.fire({
                 title: '¿Abandonar partida?',
                 text: "Se perderá el progreso actual.",
@@ -1079,7 +1084,7 @@ class SudokuGame {
         }
     }
 
-    checkWin() {
+    async checkWin() {
         const isFull = this.board.every(cell => cell.value !== null);
         const noErrors = this.board.every(cell => !cell.error);
 
@@ -1090,7 +1095,7 @@ class SudokuGame {
 
             if (this.currentChallengeCode) {
                 // CHALLENGE WIN FLOW
-                this.updateChallengeScore();
+                await this.updateChallengeScore();
             } else {
                 // VISUAL STUDIO CODE STANDARD FLOW
                 this.dom.finalTime.textContent = this.dom.timer.textContent;
@@ -1548,64 +1553,71 @@ class SudokuGame {
         }
     }
 
+    async checkWin() {
+        const isFull = this.board.every(cell => cell.value !== null);
+        const noErrors = this.board.every(cell => !cell.error);
+
+        if (isFull && noErrors) {
+            this.isGameOver = true;
+            this.stopTimer();
+            this.soundManager.playWin();
+
+            if (this.currentChallengeCode) {
+                // CHALLENGE WIN FLOW
+                // Await save to prevent race condition
+                await this.updateChallengeScore();
+            } else {
+                // VISUAL STUDIO CODE STANDARD FLOW
+                this.dom.finalTime.textContent = this.dom.timer.textContent;
+                this.dom.victoryModal.classList.remove('hidden');
+            }
+        }
+    }
+
+    // ...
+
     async showChallengeLeaderboard() {
         if (!this.currentChallengeCode) return;
 
         const fetchAndRender = async () => {
-            // Show loading inside SweetAlert if possible, or just wait
             try {
+                // FIX: Only finished games
                 const snapshot = await db.collection('scores')
                     .where('challengeId', '==', this.currentChallengeCode)
+                    .where('status', '==', 'finished')
+                    .orderBy('time', 'asc') // Ensure you have index for challengeId + status + time
                     .get();
 
-                const participants = [];
-                snapshot.forEach(doc => participants.push(doc.data()));
-
-                const finished = participants.filter(p => p.status === 'finished').sort((a, b) => a.time - b.time);
-                const playing = participants.filter(p => p.status === 'playing');
+                if (snapshot.empty) {
+                    return '<div style="text-align:center; padding:20px; color:#aaa;">Nadie ha terminado aún.</div>';
+                }
 
                 let html = '<div style="display:flex; flex-direction:column; gap:15px; text-align:left;">';
+                html += '<div><h3 style="color:#38a169; border-bottom:2px solid #38a169; padding-bottom:5px; margin-bottom:10px;">🏆 Clasificación</h3>';
 
-                // Finished Section
-                html += '<div><h3 style="color:#38a169; border-bottom:2px solid #38a169; padding-bottom:5px; margin-bottom:10px;">🏆 Terminados</h3>';
-                if (finished.length === 0) html += '<p style="color:#aaa; font-style:italic;">Nadie ha terminado aún.</p>';
-                else {
-                    finished.forEach((p, i) => {
-                        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
-                        html += `
-                            <div style="display:flex; justify-content:space-between; padding:8px; background:#f7fafc; margin-bottom:5px; border-radius:8px; align-items:center;">
-                                <div><span style="font-size:1.2em; margin-right:8px;">${medal}</span> <b>${p.nick}</b></div>
-                                <span style="font-family:monospace; font-weight:bold; color:#4c6ef5;">${p.timeStr || '--:--'}</span>
-                            </div>`;
-                    });
-                }
-                html += '</div>';
+                snapshot.forEach((doc, i) => {
+                    const p = doc.data();
+                    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+                    html += `
+                        <div style="display:flex; justify-content:space-between; padding:8px; background:#f7fafc; margin-bottom:5px; border-radius:8px; align-items:center;">
+                            <div><span style="font-size:1.2em; margin-right:8px;">${medal}</span> <b>${p.nick}</b></div>
+                            <span style="font-family:monospace; font-weight:bold; color:#4c6ef5;">${p.timeStr || '--:--'}</span>
+                        </div>`;
+                });
 
-                // Playing Section
-                html += '<div><h3 style="color:#ecc94b; border-bottom:2px solid #ecc94b; padding-bottom:5px; margin-bottom:10px;">⏳ Jugando</h3>';
-                if (playing.length === 0) html += '<p style="color:#aaa; font-style:italic;">Nadie jugando ahora.</p>';
-                else {
-                    playing.forEach(p => {
-                        html += `
-                            <div style="padding:8px; background:#fff; border:1px solid #e2e8f0; margin-bottom:5px; border-radius:8px; color:#718096;">
-                                🏃‍♂️ <b>${p.nick}</b>
-                            </div>`;
-                    });
-                }
                 html += '</div></div>';
-
                 return html;
 
             } catch (e) {
-                console.error(e);
-                return '<p style="color:red;">Error cargando datos.</p>';
+                console.error("Leaderboard Error:", e);
+                return '<p style="color:red; text-align:center;">Error cargando ranking.<br><small>Posible falta de índice.</small></p>';
             }
         };
 
         const htmlContent = await fetchAndRender();
 
         Swal.fire({
-            title: '📊 Clasificación del Reto',
+            title: '📊 Clasificación',
             html: htmlContent,
             showDenyButton: true,
             confirmButtonText: '🔄 Actualizar',
@@ -1615,10 +1627,14 @@ class SudokuGame {
             allowOutsideClick: false,
         }).then((result) => {
             if (result.isConfirmed) {
-                // Recursive call to refresh
                 this.showChallengeLeaderboard();
             } else if (result.isDenied) {
-                // Close actions if needed
+                // If it was a daily game, disable the button immediately on close to be sure
+                if (this.currentChallengeCode && this.currentChallengeCode.startsWith('DAILY-')) {
+                    this.showHome();
+                } else {
+                    this.showHome(); // Or just close? User usually wants to go home after challenge
+                }
             }
         });
     }
