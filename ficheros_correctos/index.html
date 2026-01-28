@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ultimate Sudoku</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <div class="app-container">
+
+        <!-- VIEW: HOME (Menu) -->
+        <div id="home-view">
+            <header class="home-header">
+                <img src="logo.png" alt="Sudoku Familia" class="logo-large">
+                <div class="user-greeting">
+                    Hola, <span id="user-nick-display" class="highlight-nick">...</span>
+                </div>
+            </header>
+
+            <main class="home-menu">
+                <!-- Sección 1: Copa Semanal -->
+                <section class="menu-section">
+                    <h3 class="section-title">🏆 Copa Semanal</h3>
+                    <div class="menu-grid">
+                        <button class="menu-btn easy" data-action="start" data-diff="easy">
+                            <span class="btn-icon">🟢</span>
+                            <span class="btn-text">Fácil</span>
+                        </button>
+                        <button class="menu-btn medium" data-action="start" data-diff="medium">
+                            <span class="btn-icon">🟡</span>
+                            <span class="btn-text">Medio</span>
+                        </button>
+                        <button class="menu-btn hard" data-action="start" data-diff="hard">
+                            <span class="btn-icon">🔴</span>
+                            <span class="btn-text">Difícil</span>
+                        </button>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <button class="menu-btn secondary wide" id="btn-daily-ranking" style="width: 100%;">
+                            <span class="btn-icon">📅</span> Ver Ranking de Hoy
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Sección 2: Social -->
+                <section class="menu-section">
+                    <h3 class="section-title">👻 Reto Fantasma</h3>
+                    <div class="menu-row">
+                        <button class="menu-btn secondary" id="btn-create-challenge">
+                            <span class="btn-icon">⚔️</span> Crear
+                        </button>
+                        <button class="menu-btn secondary" id="btn-join-challenge">
+                            <span class="btn-icon">🔗</span> Unirse
+                        </button>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button class="menu-btn secondary wide" id="btn-explore-challenges" style="width: 100%;">
+                            <span class="btn-icon">📜</span> Explorar Retos
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Sección 3: Práctica -->
+                <section class="menu-section">
+                    <div class="menu-row">
+                        <button class="menu-btn wide" id="btn-free-play" data-action="free-play">
+                            <span class="btn-icon">🎮</span>
+                            <span class="btn-text">Juego Libre</span>
+                        </button>
+                        <button class="menu-btn wide" id="btn-home-leaderboard" data-action="leaderboard">
+                            <span class="btn-icon">🏆</span>
+                            <span class="btn-text">Ranking</span>
+                        </button>
+                    </div>
+                </section>
+
+                <div class="home-footer" style="gap: 15px;">
+                    <button id="theme-toggle-home" class="icon-btn-large">🌓 Tema</button>
+                    <button id="sound-toggle-home" class="icon-btn-large">
+                        🔊 Sonido
+                    </button>
+                </div>
+            </main>
+        </div>
+
+        <!-- VIEW: GAME (Restored Layout) -->
+        <div id="game-view" class="hidden">
+
+            <!-- Hybrid Header: Back Button + Original Layout -->
+            <header class="header">
+                <div class="logo-container">
+                    <img src="logo.png" alt="Sudoku Familia" class="logo-img">
+                    <button id="btn-back-home" class="icon-btn" style="margin-left: 8px;" title="Volver al Menú">
+                        <svg viewBox="0 0 24 24" width="24" height="24">
+                            <path fill="currentColor"
+                                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="header-controls">
+                    <!-- Difficulty Select -->
+                    <select id="difficulty-select" class="difficulty-select" aria-label="Select Difficulty">
+                        <option value="easy">Fácil</option>
+                        <option value="medium">Medio</option>
+                        <option value="hard">Difícil</option>
+                    </select>
+                </div>
+            </header>
+
+
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-label">Errores</span>
+                    <span id="mistakes-count" class="status-value">0/3</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Tiempo</span>
+                    <span id="timer" class="status-value">00:00</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Nivel</span>
+                    <span id="level-display" class="status-value">Fácil</span>
+                </div>
+            </div>
+
+            <!-- Game Board -->
+            <div class="game-area">
+                <div id="sudoku-board" class="sudoku-board">
+                    <!-- Cells generated by JS -->
+                </div>
+            </div>
+
+            <!-- Action Controls (Original Layout) -->
+            <div class="controls-area">
+                <button class="control-btn" id="btn-pause" title="Pausar">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                    <span>Pausa</span>
+                </button>
+                <button class="control-btn" id="btn-undo" title="Deshacer">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor"
+                            d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
+                    </svg>
+                    <span>Deshacer</span>
+                </button>
+                <button class="control-btn" id="btn-erase" title="Borrar">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor"
+                            d="M16.24 3.76L14.83 2.35 18 2.35 18 2.35 21.65 6 21.65 6 21.65 6 12 15.65 9.17 12.82 16.24 5.76C16.63 5.37 16.63 4.73 16.24 4.34L16.24 3.76zM7.76 14.24L10.59 17.07 4 23.66 4 23.66 4 20 7.76 16.24C7.37 16.63 7.37 17.27 7.76 17.66L7.76 18.24 7.76 14.24zM10.59 14.24L7.76 11.41 12 7.17 14.83 10 10.59 14.24z" />
+                    </svg>
+                    <span>Borrar</span>
+                </button>
+                <button class="control-btn" id="btn-notes" title="Modo Notas">
+                    <div class="toggle-indicator">OFF</div>
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor"
+                            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                    </svg>
+                    <span>Notas</span>
+                </button>
+                <button class="control-btn" id="btn-hint" title="Pista">
+                    <div class="hint-badge">+30</div>
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor"
+                            d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.93 12.37 7 11.25 7 10c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.25-.93 2.37-2.15 3.1z" />
+                    </svg>
+                    <span>Pista</span>
+                </button>
+            </div>
+
+            <!-- Numpad -->
+            <div class="numpad">
+                <button class="num-btn" data-num="1">1<span class="num-count">9</span></button>
+                <button class="num-btn" data-num="2">2<span class="num-count">9</span></button>
+                <button class="num-btn" data-num="3">3<span class="num-count">9</span></button>
+                <button class="num-btn" data-num="4">4<span class="num-count">9</span></button>
+                <button class="num-btn" data-num="5">5<span class="num-count">9</span></button>
+                <button class="num-btn" data-num="6">6<span class="num-count">9</span></button>
+                <button class="num-btn" data-num="7">7<span class="num-count">9</span></button>
+                <button class="num-btn" data-num="8">8<span class="num-count">9</span></button>
+                <button class="num-btn" data-num="9">9<span class="num-count">9</span></button>
+            </div>
+
+            <button id="btn-new-game" class="btn-primary"
+                style="opacity: 0; pointer-events: none; height: 1px;">_</button> <!-- Hidden spacer for scroll -->
+
+        </div>
+
+    </div>
+
+    <!-- PAUSE OVERLAY -->
+    <div id="pause-overlay" class="overlay hidden" style="background: rgba(0,0,0,0.85); flex-direction: column;">
+        <div class="overlay-content centered">
+            <h2 style="font-size: 3rem; margin-bottom: 2rem;">PAUSA</h2>
+            <button id="btn-resume" class="btn-primary large">▶ Reanudar</button>
+        </div>
+    </div>
+
+    <!-- Modals (UNCHANGED) -->
+    <div id="game-over-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="modal-title">¡Juego Terminado!</h2>
+            <p id="modal-message">Has cometido demasiados errores.</p>
+            <div class="modal-actions">
+                <button id="btn-revive" class="btn-secondary">Revivir (+30s)</button>
+                <button id="btn-restart" class="btn-primary">Nueva Partida</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="victory-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>¡Victoria! 🏆</h2>
+            <p>Tiempo Final: <span id="final-time" class="highlight-time">00:00</span></p>
+            <div id="record-msg" class="hidden">¡Nuevo Récord!</div>
+            <input type="text" id="player-name" placeholder="Tu Nombre" maxlength="10" class="input-name">
+            <button id="btn-save-score" class="btn-primary">Guardar Puntuación</button>
+        </div>
+    </div>
+
+    <div id="leaderboard-modal" class="modal hidden">
+        <div class="modal-content wide">
+            <h2>Ranking Mundial 🌍</h2>
+            <div class="tabs">
+                <button class="tab-btn active" data-diff="easy">Fácil</button>
+                <button class="tab-btn" data-diff="medium">Medio</button>
+                <button class="tab-btn" data-diff="hard">Difícil</button>
+            </div>
+            <div class="leaderboard-list">
+                <!-- Scores injected by JS -->
+            </div>
+            <button id="btn-close-leaderboard" class="btn-secondary">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Firebase Compat SDKs (Works with file://) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="script.js" defer></script>
+</body>
+
+</html>

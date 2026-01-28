@@ -4,6 +4,8 @@
 
     /* Fondos */
     --bg-page: #050505;
+    --bg-app: #1e1e1e;
+    /* Default Dark App Bg for Game View */
     --bg-overlay: rgba(20, 20, 30, 0.6);
     --glass-bg: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.1);
@@ -42,33 +44,34 @@
     --glow-accent: 0 0 10px rgba(0, 242, 255, 0.5);
     --glow-success: 0 0 10px rgba(0, 255, 157, 0.4);
 
-    /* Dimensiones */
-    --border-radius: 20px;
-    /* Ajuste para móviles: Padding total es ~30px (15app + 15game) * 2 = 60px. Usamos 100vw - 60px seguro */
-    --board-size: min(calc(100vw - 60px), 480px);
+    --border-radius: 12px;
+    --board-size: min(calc(100vw - 12px), 480px);
     --cell-size: calc(var(--board-size) / 9);
 }
 
-@media (max-width: 400px) {
+/* Mobile Media Query from Backup - Crucial for Full Screen Game */
+@media (max-width: 500px) {
     .app-container {
-        padding: 10px;
+        border-radius: 0;
+        min-height: 100vh;
+        padding-left: 4px;
+        padding-right: 4px;
+        justify-content: flex-start;
+        padding-top: max(0px, env(safe-area-inset-top));
+        gap: 0px;
+    }
+
+    body {
+        padding: 0;
+        align-items: flex-start;
     }
 
     #game-view {
-        padding: 15px 10px;
+        gap: 0px;
+        min-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
     }
-
-    /* Menos padding lateral en móvil */
-    :root {
-        --board-size: min(calc(100vw - 40px), 480px);
-    }
-
-    /* Aún más espacio si reducimos padding */
-    .logo-large {
-        height: 50px;
-    }
-
-    /* Logo más pequeño en móvil */
 }
 
 * {
@@ -105,8 +108,20 @@ body {
    ESTILOS GENERALES (GLASS)
    ============================ */
 
-.menu-section,
 #game-view {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    /* RESTORED GAME CONTAINER STYLE */
+    background-color: var(--bg-app);
+    /* Uses theme variable */
+    padding: 20px 5px;
+    border-radius: 20px;
+    box-shadow: var(--shadow-lg);
+}
+
+.menu-section {
     background: var(--glass-bg);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -316,36 +331,40 @@ body {
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
 }
 
+/* Game Board - Restored from Backup */
+.game-area {
+    display: flex;
+    justify-content: center;
+}
+
 .sudoku-board {
     display: grid;
     grid-template-columns: repeat(9, 1fr);
     width: var(--board-size);
     height: var(--board-size);
-    margin: 0 auto;
-    /* Centrado horizontal */
     background-color: var(--board-border);
-    /* Color de líneas */
-    border: 2px solid var(--accent);
-    /* Borde exterior brillante */
-    box-shadow: var(--glow-accent);
-    /* Resplandor */
+    border: 2px solid var(--board-border);
     gap: 1px;
+    user-select: none;
     margin: 0 auto;
+    box-shadow: none;
+    /* Removed neon glow */
 }
 
 .cell {
-    background-color: var(--bg-page);
-    /* Fondo oscuro */
+    background-color: var(--cell-bg);
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: clamp(1.5rem, 5vw, 2.2rem);
-    color: var(--text-secondary);
-    position: relative;
+    font-size: clamp(1.6rem, 5.4vw, 2.4rem);
+    font-weight: 400;
     cursor: pointer;
+    position: relative;
+    transition: background-color 0.1s;
+    color: var(--num-color);
 }
 
-/* Líneas gruesas 3x3 */
+/* Thicker borders for 3x3 blocks */
 .cell:nth-child(3n) {
     border-right: 2px solid var(--board-border);
 }
@@ -358,6 +377,7 @@ body {
 .cell:nth-child(n+46):nth-child(-n+54) {
     border-bottom: 2px solid var(--board-border);
 }
+
 
 /* Estados de Celda */
 .cell.given {
@@ -833,6 +853,8 @@ body {
 [data-theme="light"] {
     /* Fondos */
     --bg-page: #f0f4f8;
+    --bg-app: #ffffff;
+    /* Classic White App Bg */
     --bg-overlay: rgba(255, 255, 255, 0.8);
     --glass-bg: rgba(255, 255, 255, 0.6);
     --glass-border: rgba(0, 0, 0, 0.1);
@@ -852,22 +874,22 @@ body {
     --warning: #d69e2e;
     /* Amarillo oscuro */
 
-    /* Tablero */
-    --board-border: #cbd5e0;
-    --cell-border: rgba(0, 0, 0, 0.1);
-    --cell-bg: rgba(255, 255, 255, 0.8);
-    --cell-hover: rgba(49, 130, 206, 0.1);
-    --cell-selected: rgba(49, 130, 206, 0.2);
-    --cell-related: rgba(0, 0, 0, 0.05);
+    /* Tablero - Restored Classic Colors */
+    --board-border: #2d3748;
+    --cell-border: #e2e8f0;
+    --cell-bg: #ffffff;
+    --cell-hover: #edf2f7;
+    --cell-selected: #e3f2fd;
+    --cell-related: #f7fafc;
 
     /* Números */
-    --num-given: #2d3748;
-    --num-user: #2b6cb0;
+    --num-given: #1a202c;
+    --num-user: #4c6ef5;
     --note-color: #718096;
 
-    /* Efectos (Reduce Glows) */
-    --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --glow-accent: 0 0 5px rgba(49, 130, 206, 0.4);
+    /* Efectos */
+    --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --glow-accent: none;
 
     --body-bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
