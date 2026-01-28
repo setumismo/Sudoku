@@ -1341,3 +1341,32 @@ body {
     font-weight: 800;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
+
+/* --- 7. BUBBLE CONTAINERS (Refinement) --- */
+.glass-section-container {
+    background: rgba(20, 20, 35, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 20px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.glass-section-container h3.section-title {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-primary);
+}
+
+/* Ensure Home View Enforces Dark Mode Look */
+#home-view {
+    /* Force dark text for home view components if they rely on inherited vars */
+    --text-primary: #ffffff;
+    --text-secondary: #a0aec0;
+}
+
