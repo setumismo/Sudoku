@@ -775,7 +775,7 @@ class SudokuGame {
     }
 
     loadTheme() {
-        const savedTheme = localStorage.getItem('theme') || 'dark';
+        const savedTheme = localStorage.getItem('theme') || 'light';
         document.body.setAttribute('data-theme', savedTheme);
         // Initial visual update handled by init -> updateThemeIcons/showHome
     }

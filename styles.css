@@ -1062,7 +1062,9 @@ body {
 
 .circle-icon-btn:active {
     transform: scale(0.9);
-}/* =========================================
+}
+
+/* =========================================
    NUEVAS CLASES: NEÓN GLASS REDESIGN
    ========================================= */
 
@@ -1348,7 +1350,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 24px;
     padding: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
@@ -1363,10 +1365,49 @@ body {
     color: var(--text-primary);
 }
 
+/* --- 8. BIG PILL BUTTON (Juego Libre) --- */
+.big-pill-btn {
+    width: 100%;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50px;
+    padding: 15px 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    color: white;
+    font-weight: 700;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+.big-pill-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.big-pill-btn:active {
+    transform: scale(0.98);
+}
+
+.big-pill-btn .icon-plus {
+    font-size: 1.8rem;
+    line-height: 0;
+    font-weight: 300;
+    margin-top: -2px;
+}
+
 /* Ensure Home View Enforces Dark Mode Look */
 #home-view {
     /* Force dark text for home view components if they rely on inherited vars */
     --text-primary: #ffffff;
     --text-secondary: #a0aec0;
 }
-
