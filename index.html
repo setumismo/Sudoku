@@ -124,13 +124,41 @@
                 <!-- Sección 3: Juego Libre -->
                 <section class="menu-section glass-section-container">
                     <h3 class="section-title">Juego libre</h3>
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <button id="btn-free-play" class="big-pill-btn" style="flex: 1;">
-                            <span class="icon-plus">+</span>
-                            <span>Jugar</span>
-                        </button>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+
+                        <!-- Free Play Difficulty Buttons -->
+                        <div style="display: flex; gap: 15px;">
+                            <!-- Easy -->
+                            <button class="menu-btn circle-btn circle-btn-small easy" data-action="free-play"
+                                data-diff="easy" title="Juego Libre: Fácil">
+                                <svg viewBox="0 0 24 24" class="signal-icon">
+                                    <path fill="currentColor" d="M2 22h4v-7H2v7z" class="bar-1" />
+                                    <path fill="currentColor" d="M9 22h4v-12H9v12z" class="bar-2"
+                                        style="opacity: 0.3" />
+                                    <path fill="currentColor" d="M16 22h4v-17h-4v17z" class="bar-3"
+                                        style="opacity: 0.3" />
+                                </svg>
+                            </button>
+                            <!-- Medium -->
+                            <button class="menu-btn circle-btn circle-btn-small medium" data-action="free-play"
+                                data-diff="medium" title="Juego Libre: Medio">
+                                <svg viewBox="0 0 24 24" class="signal-icon">
+                                    <path fill="currentColor" d="M2 22h4v-7H2v7z" class="bar-1" />
+                                    <path fill="currentColor" d="M9 22h4v-12H9v12z" class="bar-2" />
+                                    <path fill="currentColor" d="M16 22h4v-17h-4v17z" class="bar-3"
+                                        style="opacity: 0.3" />
+                                </svg>
+                            </button>
+                            <!-- Hard -->
+                            <button class="menu-btn circle-btn circle-btn-small hard" data-action="free-play"
+                                data-diff="hard" title="Juego Libre: Difícil">
+                                <span class="btn-icon-large" style="font-size: 1.2rem;">🔥</span>
+                            </button>
+                        </div>
+
+                        <!-- Trophy Button (Kept) -->
                         <button id="btn-home-leaderboard" class="circle-icon-btn"
-                            style="width: 60px; height: 60px; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); font-size: 1.5rem;">
+                            style="width: 50px; height: 50px; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); font-size: 1.5rem;">
                             🏆
                         </button>
                     </div>

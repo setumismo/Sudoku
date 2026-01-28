@@ -574,7 +574,24 @@ class SudokuGame {
             });
         });
 
-        // Free Play
+        // Free Play Difficulty Buttons
+        const freePlayBtns = document.querySelectorAll('.menu-btn[data-action="free-play"]');
+        if (freePlayBtns.length > 0) {
+            freePlayBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const diff = btn.dataset.diff;
+                    this.difficulty = diff;
+                    // Pass NULL as seed to ensure random generation
+                    this.startNewGame(null, null);
+                    this.showGame();
+                    // Update UI Labels
+                    if (this.dom.difficultySelect) this.dom.difficultySelect.value = diff;
+                    if (this.dom.level) this.dom.level.textContent = diff === 'easy' ? 'Fácil' : diff === 'medium' ? 'Medio' : 'Difícil';
+                });
+            });
+        }
+
+        // Old Free Play Button (Legacy check, creating if exists)
         if (this.dom.freePlayBtn) {
             this.dom.freePlayBtn.addEventListener('click', () => {
                 this.difficulty = 'medium';
