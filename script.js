@@ -692,10 +692,9 @@ class SudokuGame {
         // Sound Toggle (Home Footer)
         if (this.dom.soundToggle) {
             this.dom.soundToggle.addEventListener('click', (e) => {
-                e.stopPropagation();
                 const isEnabled = this.soundManager.toggle();
-                // Update Text Content directly since we are using text in button now
-                this.dom.soundToggle.textContent = isEnabled ? '🔊 Sonido' : '🔇 Silencio';
+                const icon = document.getElementById('sound-icon-display');
+                if (icon) icon.textContent = isEnabled ? '🔊' : '🔇';
             });
         }
 
@@ -776,7 +775,7 @@ class SudokuGame {
     }
 
     loadTheme() {
-        const savedTheme = localStorage.getItem('theme') || 'light';
+        const savedTheme = localStorage.getItem('theme') || 'dark';
         document.body.setAttribute('data-theme', savedTheme);
         // Initial visual update handled by init -> updateThemeIcons/showHome
     }
