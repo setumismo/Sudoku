@@ -44,8 +44,31 @@
 
     /* Dimensiones */
     --border-radius: 20px;
-    --board-size: min(calc(100vw - 20px), 480px);
+    /* Ajuste para móviles: Padding total es ~30px (15app + 15game) * 2 = 60px. Usamos 100vw - 60px seguro */
+    --board-size: min(calc(100vw - 60px), 480px);
     --cell-size: calc(var(--board-size) / 9);
+}
+
+@media (max-width: 400px) {
+    .app-container {
+        padding: 10px;
+    }
+
+    #game-view {
+        padding: 15px 10px;
+    }
+
+    /* Menos padding lateral en móvil */
+    :root {
+        --board-size: min(calc(100vw - 40px), 480px);
+    }
+
+    /* Aún más espacio si reducimos padding */
+    .logo-large {
+        height: 50px;
+    }
+
+    /* Logo más pequeño en móvil */
 }
 
 * {
