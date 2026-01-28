@@ -231,6 +231,13 @@ body {
     text-shadow: 0 0 10px var(--accent);
 }
 
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .header {
     display: flex;
     justify-content: space-between;
@@ -291,6 +298,8 @@ body {
     grid-template-columns: repeat(9, 1fr);
     width: var(--board-size);
     height: var(--board-size);
+    margin: 0 auto;
+    /* Centrado horizontal */
     background-color: var(--board-border);
     /* Color de líneas */
     border: 2px solid var(--accent);
@@ -567,38 +576,38 @@ body {
     text-transform: capitalize;
 }
 
-/* Colores Específicos Círculos */
+/* Colores Específicos Círculos (VIBRANTES / SOLIDOS) */
 .circle-btn.easy {
-    background: linear-gradient(135deg, rgba(0, 255, 157, 0.2), rgba(0, 255, 157, 0.05));
-    border-color: rgba(0, 255, 157, 0.4);
+    background: linear-gradient(135deg, #48bb78 0%, #2f855a 100%);
+    border: 2px solid #68d391;
+    box-shadow: 0 0 15px rgba(72, 187, 120, 0.4);
 }
 
 .circle-btn.easy:active {
     transform: scale(0.9);
-    box-shadow: 0 0 20px var(--success);
-    border-color: var(--success);
+    box-shadow: 0 0 25px rgba(72, 187, 120, 0.6);
 }
 
 .circle-btn.medium {
-    background: linear-gradient(135deg, rgba(255, 189, 0, 0.2), rgba(255, 189, 0, 0.05));
-    border-color: rgba(255, 189, 0, 0.4);
+    background: linear-gradient(135deg, #ecc94b 0%, #b7791f 100%);
+    border: 2px solid #f6e05e;
+    box-shadow: 0 0 15px rgba(236, 201, 75, 0.4);
 }
 
 .circle-btn.medium:active {
     transform: scale(0.9);
-    box-shadow: 0 0 20px var(--warning);
-    border-color: var(--warning);
+    box-shadow: 0 0 25px rgba(236, 201, 75, 0.6);
 }
 
 .circle-btn.hard {
-    background: linear-gradient(135deg, rgba(255, 0, 85, 0.2), rgba(255, 0, 85, 0.05));
-    border-color: rgba(255, 0, 85, 0.4);
+    background: linear-gradient(135deg, #f56565 0%, #c53030 100%);
+    border: 2px solid #fc8181;
+    box-shadow: 0 0 15px rgba(245, 101, 101, 0.4);
 }
 
 .circle-btn.hard:active {
     transform: scale(0.9);
-    box-shadow: 0 0 20px var(--error);
-    border-color: var(--error);
+    box-shadow: 0 0 25px rgba(245, 101, 101, 0.6);
 }
 
 
