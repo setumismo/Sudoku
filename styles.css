@@ -1439,7 +1439,7 @@ body {
 
 /* Footer del juego */
 .game-footer {
-    margin-top: 15px;
+    margin-top: 22px;
     padding-top: 0;
     border-top: none;
     width: 100%;
@@ -1459,12 +1459,13 @@ body {
     cursor: pointer;
     transition: all 0.1s;
     /* Efecto 3D base */
-    border-bottom: 5px solid rgba(0,0,0,0.2);
+    border-bottom: 5px solid rgba(0, 0, 0, 0.2);
     position: relative;
 }
 
 .cartoon-btn:active {
-    transform: translateY(4px); /* Se hunde */
+    transform: translateY(4px);
+    /* Se hunde */
     border-bottom-width: 1px;
     margin-bottom: 4px;
 }
@@ -1475,10 +1476,12 @@ body {
     color: white;
     border-bottom-color: var(--accent-hover);
 }
-.cartoon-btn.blue:hover { 
-    background-color: var(--accent-hover); 
+
+.cartoon-btn.blue:hover {
+    background-color: var(--accent-hover);
 }
 
 /* Utilidad hidden por si acaso */
-.hidden { display: none !important; }
-
+.hidden {
+    display: none !important;
+}
