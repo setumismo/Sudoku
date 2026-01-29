@@ -1436,3 +1436,46 @@ body {
 .circle-btn-small:active {
     transform: scale(0.9);
 }
+/* Footer del juego */
+.game-footer {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    width: 100%;
+}
+
+/* Estilo Botón Cartoon Azul (Standalone) */
+.cartoon-btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 16px;
+    font-family: inherit;
+    font-weight: 800;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.1s;
+    /* Efecto 3D base */
+    border-bottom: 5px solid rgba(0,0,0,0.2);
+    position: relative;
+}
+
+.cartoon-btn:active {
+    transform: translateY(4px); /* Se hunde */
+    border-bottom-width: 1px;
+    margin-bottom: 4px;
+}
+
+/* Color Azul Específico */
+.cartoon-btn.blue {
+    background-color: #1cb0f6; /* Azul Duolingo */
+    color: white;
+    border-color: #1899d6; /* Sombra azul más oscura */
+}
+.cartoon-btn.blue:hover { background-color: #24b5f7; }
+
+/* Utilidad hidden por si acaso */
+.hidden { display: none !important; }
+

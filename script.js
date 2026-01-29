@@ -211,6 +211,10 @@ class SudokuGame {
             closeLeaderboardBtn: document.getElementById('btn-close-leaderboard'),
             leaderboardList: document.querySelector('.leaderboard-list'),
             tabBtns: document.querySelectorAll('.tab-btn'),
+
+            // Footer Elements
+            gameFooter: document.getElementById('game-footer'),
+            btnNewGameBig: document.getElementById('btn-new-game-big'),
         };
 
         this.setupEventListeners();
@@ -780,6 +784,25 @@ class SudokuGame {
             // Otherwise, deselect
             this.deselectAll();
         });
+
+        // New Game Big Button
+        if (this.dom.btnNewGameBig) {
+            this.dom.btnNewGameBig.addEventListener('click', () => {
+                Swal.fire({
+                    title: '¿Nueva Partida?',
+                    text: "Se perderá el progreso actual.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, empezar',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#1cb0f6',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.startNewGame();
+                    }
+                });
+            });
+        }
     }
 
     toggleTheme() {
@@ -881,16 +904,16 @@ class SudokuGame {
         this.startTimer();
 
         // Botón Nueva Partida (Solo visible en juego libre)
-        if (this.dom.btnNewGame) {
+        // OLD BUTTON LOGIC REMOVED/IGNORED in favor of Footer
+
+        // Lógica de visibilidad del Footer de Nueva Partida
+        if (this.dom.gameFooter) {
             if (!seed && !challengeCode) {
-                this.dom.btnNewGame.style.opacity = '1';
-                this.dom.btnNewGame.style.pointerEvents = 'auto';
-                this.dom.btnNewGame.style.height = 'auto';
-                this.dom.btnNewGame.innerHTML = "🔄 Nueva Partida"; // Asegurar texto
+                // Es Juego Libre -> MOSTRAR footer
+                this.dom.gameFooter.classList.remove('hidden');
             } else {
-                this.dom.btnNewGame.style.opacity = '0';
-                this.dom.btnNewGame.style.pointerEvents = 'none';
-                this.dom.btnNewGame.style.height = '1px';
+                // Es Competitivo -> OCULTAR footer
+                this.dom.gameFooter.classList.add('hidden');
             }
         }
     }
