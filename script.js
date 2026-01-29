@@ -946,12 +946,25 @@ class SudokuGame {
         return true;
     }
 
+    // Barajado Fisher-Yates (100% determinista con nuestra seed)
+    shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(this.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
     solveSudoku(grid) {
         for (let i = 0; i < 81; i++) {
             if (grid[i] === 0) {
                 let row = Math.floor(i / 9);
                 let col = i % 9;
-                const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => this.random() - 0.5);
+
+                // CAMBIO AQUÍ: Usar shuffle en lugar de sort
+                let nums = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+                this.shuffle(nums);
+
                 for (let num of nums) {
                     if (this.isSafe(grid, row, col, num)) {
                         grid[i] = num;
@@ -1947,9 +1960,10 @@ class SudokuGame {
 
     getDailySeed(difficulty) {
         const d = new Date();
-        const year = d.getFullYear();
-        const month = (d.getMonth() + 1).toString().padStart(2, '0');
-        const day = d.getDate().toString().padStart(2, '0');
+        // Usar UTC para garantizar que todos en el mundo tengan el mismo reto al mismo tiempo
+        const year = d.getUTCFullYear();
+        const month = (d.getUTCMonth() + 1).toString().padStart(2, '0');
+        const day = d.getUTCDate().toString().padStart(2, '0');
         return `DAILY-${year}-${month}-${day}-${difficulty.toUpperCase()}`;
     }
 
