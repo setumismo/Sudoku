@@ -798,7 +798,28 @@ class SudokuGame {
     }
 
     // --- PRNG (Pseudo-Random Number Generator) ---
-    seededRandom(a) {
+    // Algoritmo de Hashing robusto (Convierte String -> Estado Numérico)
+    xmur3(str) {
+        let h = 1779033703 ^ str.length;
+        for (let i = 0; i < str.length; i++) {
+            h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+            h = h << 13 | h >>> 19;
+        }
+        return function () {
+            h = Math.imul(h ^ (h >>> 16), 2246822507);
+            h = Math.imul(h ^ (h >>> 13), 3266489909);
+            return (h ^= h >>> 16) >>> 0;
+        }
+    }
+
+    // Generador Mulberry32 (Estándar determinista)
+    seededRandom(seedString) {
+        // Usamos xmur3 para obtener una semilla numérica válida desde el string
+        const seedFunc = this.xmur3(seedString);
+        // Generamos el estado inicial
+        let a = seedFunc();
+
+        // Retornamos la función generadora
         return function () {
             var t = a += 0x6D2B79F5;
             t = Math.imul(t ^ t >>> 15, t | 1);
@@ -821,34 +842,33 @@ class SudokuGame {
         this.selectedCellIndex = -1;
         this.selectedNumber = null;
         this.notesMode = false;
+
+        // Resetear botón de notas visualmente
         if (this.dom.notesBtn) {
             this.dom.notesBtn.querySelector('.toggle-indicator').textContent = 'OFF';
             this.dom.notesBtn.classList.remove('active');
         }
 
-        // Handle Seed
+        // --- CAMBIO CLAVE AQUÍ ---
         this.currentSeed = seed;
         if (seed) {
-            console.log(`Starting seeded game: ${seed}`);
-            let seedNum = 0;
-            for (let i = 0; i < seed.length; i++) {
-                seedNum = ((seedNum << 5) - seedNum) + seed.charCodeAt(i);
-                seedNum |= 0;
-            }
-            this.prng = this.seededRandom(seedNum);
+            console.log(`Starting seeded game with robust hash: ${seed}`);
+            // Ahora pasamos el string DIRECTAMENTE, el nuevo seededRandom se encarga del hash
+            this.prng = this.seededRandom(seed);
         } else {
             console.log('Starting random game');
             this.prng = null;
         }
+        // -------------------------
 
         // Handle Challenge Context
         this.currentChallengeCode = challengeCode;
-        this.currentScoreId = null; // Reset score ID
+        this.currentScoreId = null;
         if (this.currentChallengeCode) {
             this.registerParticipant();
         }
 
-        // Sync UI select with internal state
+        // Sync UI select
         if (this.dom.difficultySelect) {
             this.dom.difficultySelect.value = this.difficulty;
         }
@@ -859,6 +879,20 @@ class SudokuGame {
         this.generateBoard();
         this.renderBoard();
         this.startTimer();
+
+        // Botón Nueva Partida (Solo visible en juego libre)
+        if (this.dom.btnNewGame) {
+            if (!seed && !challengeCode) {
+                this.dom.btnNewGame.style.opacity = '1';
+                this.dom.btnNewGame.style.pointerEvents = 'auto';
+                this.dom.btnNewGame.style.height = 'auto';
+                this.dom.btnNewGame.innerHTML = "🔄 Nueva Partida"; // Asegurar texto
+            } else {
+                this.dom.btnNewGame.style.opacity = '0';
+                this.dom.btnNewGame.style.pointerEvents = 'none';
+                this.dom.btnNewGame.style.height = '1px';
+            }
+        }
     }
 
     generateBoard() {
