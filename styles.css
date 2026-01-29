@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     /* Color Palette - Light Mode (Default) */
     --bg-page: #f0f2f5;
     --bg-app: #ffffff;
@@ -791,7 +791,7 @@ body {
 }
 
 /* =========================================
-   NUEVAS CLASES: NEÓN GLASS REDESIGN
+   NUEVAS CLASES: NEÃ“N GLASS REDESIGN
    ========================================= */
 
 /* --- 1. SECCIONES TRANSPARENTES --- */
@@ -836,7 +836,7 @@ body {
     overflow: hidden;
 }
 
-/* Reset de estilos antiguos si menu-btn conflictúa */
+/* Reset de estilos antiguos si menu-btn conflictÃºa */
 .circle-btn.menu-btn {
     padding: 0;
     min-height: 0;
@@ -854,7 +854,7 @@ body {
     text-transform: capitalize;
 }
 
-/* Colores Específicos Círculos (VIBRANTES / SOLIDOS) */
+/* Colores EspecÃ­ficos CÃ­rculos (VIBRANTES / SOLIDOS) */
 .circle-btn.easy {
     background: linear-gradient(135deg, #48bb78 0%, #2f855a 100%);
     border: 2px solid #68d391;
@@ -889,7 +889,7 @@ body {
 }
 
 
-/* --- 3. BOTÓN PILL (Ranking Diario) --- */
+/* --- 3. BOTÃ“N PILL (Ranking Diario) --- */
 .glass-pill-btn {
     width: 100%;
     background: rgba(255, 255, 255, 0.08);
@@ -964,7 +964,7 @@ body {
     border-radius: 50px;
     /* Pill panel */
     padding: 8px 10px 8px 25px;
-    /* Más padding izq para el texto */
+    /* MÃ¡s padding izq para el texto */
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -998,7 +998,7 @@ body {
     font-size: 1.2rem;
 }
 
-/* Botón Ranking (Trofeo) */
+/* BotÃ³n Ranking (Trofeo) */
 #btn-home-leaderboard.action-icon-btn {
     background: transparent;
     color: white;
@@ -1010,7 +1010,7 @@ body {
     background: rgba(255, 255, 255, 0.1);
 }
 
-/* Botón Jugar (+) */
+/* BotÃ³n Jugar (+) */
 #btn-free-play.action-icon-btn {
     background: rgba(255, 255, 255, 0.15);
     color: white;
@@ -1065,7 +1065,7 @@ body {
 }
 
 /* =========================================
-   NUEVAS CLASES: NEÓN GLASS REDESIGN
+   NUEVAS CLASES: NEÃ“N GLASS REDESIGN
    ========================================= */
 
 /* --- 1. SECCIONES TRANSPARENTES --- */
@@ -1110,7 +1110,7 @@ body {
     overflow: hidden;
 }
 
-/* Reset de estilos antiguos si menu-btn conflictúa */
+/* Reset de estilos antiguos si menu-btn conflictÃºa */
 .circle-btn.menu-btn {
     padding: 0;
     min-height: 0;
@@ -1128,7 +1128,7 @@ body {
     text-transform: capitalize;
 }
 
-/* Colores Específicos Círculos (VIBRANTES / SOLIDOS) */
+/* Colores EspecÃ­ficos CÃ­rculos (VIBRANTES / SOLIDOS) */
 .circle-btn.easy {
     background: linear-gradient(135deg, #48bb78 0%, #2f855a 100%);
     border: 2px solid #68d391;
@@ -1163,7 +1163,7 @@ body {
 }
 
 
-/* --- 3. BOTÓN PILL (Ranking Diario) --- */
+/* --- 3. BOTÃ“N PILL (Ranking Diario) --- */
 .glass-pill-btn {
     width: 100%;
     background: rgba(255, 255, 255, 0.08);
@@ -1238,7 +1238,7 @@ body {
     border-radius: 50px;
     /* Pill panel */
     padding: 8px 10px 8px 25px;
-    /* Más padding izq para el texto */
+    /* MÃ¡s padding izq para el texto */
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1272,7 +1272,7 @@ body {
     font-size: 1.2rem;
 }
 
-/* Botón Ranking (Trofeo) */
+/* BotÃ³n Ranking (Trofeo) */
 #btn-home-leaderboard.action-icon-btn {
     background: transparent;
     color: white;
@@ -1284,7 +1284,7 @@ body {
     background: rgba(255, 255, 255, 0.1);
 }
 
-/* Botón Jugar (+) */
+/* BotÃ³n Jugar (+) */
 #btn-free-play.action-icon-btn {
     background: rgba(255, 255, 255, 0.15);
     color: white;
@@ -1436,15 +1436,16 @@ body {
 .circle-btn-small:active {
     transform: scale(0.9);
 }
+
 /* Footer del juego */
 .game-footer {
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
+    margin-top: 15px;
+    padding-top: 0;
+    border-top: none;
     width: 100%;
 }
 
-/* Estilo Bot�n Cartoon Azul (Standalone) */
+/* Estilo Botón Cartoon Azul (Standalone) */
 .cartoon-btn {
     width: 100%;
     padding: 15px;
@@ -1468,13 +1469,15 @@ body {
     margin-bottom: 4px;
 }
 
-/* Color Azul Espec�fico */
+/* Color Azul Específico (Match App Accent) */
 .cartoon-btn.blue {
-    background-color: #1cb0f6; /* Azul Duolingo */
+    background-color: var(--accent);
     color: white;
-    border-color: #1899d6; /* Sombra azul m�s oscura */
+    border-bottom-color: var(--accent-hover);
 }
-.cartoon-btn.blue:hover { background-color: #24b5f7; }
+.cartoon-btn.blue:hover { 
+    background-color: var(--accent-hover); 
+}
 
 /* Utilidad hidden por si acaso */
 .hidden { display: none !important; }
