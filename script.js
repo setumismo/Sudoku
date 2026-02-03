@@ -214,7 +214,10 @@ class SudokuGame {
 
             // Footer Elements
         };
-        document.addEventListener('click', initAudio);
+        this.setupEventListeners();
+        this.loadTheme();
+        this.checkAuth();
+        this.initAuth(); // Bind hybrid auth buttons
 
         // Show Home by default
         this.showHome();
