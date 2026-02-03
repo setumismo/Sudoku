@@ -456,6 +456,12 @@ class SudokuGame {
             });
 
             // 3. Calc Totals & Penalties
+            // NEW: Penalty base addition based on difficulty
+            let penaltyAdd = 0;
+            if (diff === 'easy') penaltyAdd = 5;
+            else if (diff === 'medium') penaltyAdd = 10;
+            else if (diff === 'hard') penaltyAdd = 15;
+
             const rankedUsers = Object.values(users).map(u => {
                 let total = 0;
                 let isPenalized = false;
@@ -464,8 +470,8 @@ class SudokuGame {
                     if (u.days[id]) {
                         total += u.days[id];
                     } else {
-                        // PINALTY
-                        total += dayMaxTimes[id];
+                        // PENALTY: MaxTime + Difficulty Bonus
+                        total += dayMaxTimes[id] + penaltyAdd;
                         isPenalized = true;
                         u.days[id] = -1; // Mark as missing
                     }
@@ -497,8 +503,13 @@ class SudokuGame {
                 ids.forEach((id, idx) => {
                     const dayName = dates[idx].toLocaleDateString('es-ES', { weekday: 'long' });
                     const val = u.days[id];
+
+                    // Show full penalty in detail: (+MaxTime + Bonus) -> e.g. (+05:30)
+                    // We render the SUM of penalty
+                    const penaltyTimeForDay = dayMaxTimes[id] + penaltyAdd;
+
                     const valStr = val === -1
-                        ? `<span style="color:#e53e3e">No jugado (+${this.formatTime(dayMaxTimes[id])})</span>`
+                        ? `<span style="color:#e53e3e">No jugado (+${this.formatTime(penaltyTimeForDay)})</span>`
                         : this.formatTime(val);
                     details += `<div style="display:flex; justify-content:space-between; font-size:0.9em; padding:2px 0;">
                         <span style="text-transform:capitalize">${dayName}</span>
