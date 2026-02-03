@@ -1436,6 +1436,12 @@ class SudokuGame {
 
                 // Get nick from profile or DB
                 let nick = user.displayName;
+
+                // Fallback to temporarily stored nick if available (for fresh Guest login)
+                if (!nick && this.temporaryGuestNick) {
+                    nick = this.temporaryGuestNick;
+                }
+
                 db.collection('users').doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
                         nick = doc.data().nick || nick;
@@ -1443,14 +1449,17 @@ class SudokuGame {
                         this.updateUserDisplay();
                     } else {
                         // Create Basic User Doc if missing
+                        const initialNick = nick || 'Anónimo';
                         db.collection('users').doc(user.uid).set({
                             uid: user.uid,
-                            nick: nick || 'Anónimo',
+                            nick: initialNick,
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         }, { merge: true });
-                        this.currentUserNick = nick || 'Anónimo';
+                        this.currentUserNick = initialNick;
                         this.updateUserDisplay();
                     }
+                    // Clear temp nick
+                    this.temporaryGuestNick = null;
                 }).catch(e => {
                     console.log("Error checking user doc:", e);
                     this.currentUserNick = user.displayName || 'Anónimo';
@@ -1489,6 +1498,10 @@ class SudokuGame {
         if (btnGuest) {
             btnGuest.addEventListener('click', () => {
                 const nick = inputGuest.value.trim();
+
+                // Store nick temporarily for checkAuth to find it immediately
+                if (nick) this.temporaryGuestNick = nick;
+
                 auth.signInAnonymously().then((result) => {
                     if (nick) {
                         // Immediately update local UI to avoid "Anonymous" flash
