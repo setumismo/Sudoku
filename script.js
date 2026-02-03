@@ -1701,7 +1701,7 @@ class SudokuGame {
         this.currentLeaderboardDiff = difficulty; // Store for reload
 
         // Toggle Period Selector (Only for Weekly Cup)
-        const periodSelect = document.getElementById('leaderboard-period-select');
+        const periodSelect = document.getElementById('leaderboard-week-select');
         const isWeekly = difficulty.includes('DAILY');
         if (periodSelect) {
             periodSelect.style.display = isWeekly ? 'block' : 'none';
@@ -1715,7 +1715,7 @@ class SudokuGame {
             let query = db.collection("scores").where("difficulty", "==", difficulty);
 
             // Only filter by Week if it's a Weekly/Daily Cup. free-play should be all-time.
-            const isWeekly = difficulty.includes('DAILY');
+            // isWeekly already defined above
 
             if (isWeekly) {
                 // Calculate Target Week ID
