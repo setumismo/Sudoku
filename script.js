@@ -319,6 +319,13 @@ class SudokuGame {
         Swal.fire({
             title: '🏆 Clasificación',
             html: `
+                <div style="margin-bottom:15px; display:flex; justify-content:center;">
+                    <select id="swal-week-select" class="swal2-input" style="width:auto; margin:0;" onchange="window.gameInstance.onSwalWeekChange(this.value)">
+                        <option value="current">📅 Semana Actual</option>
+                        <option value="previous">⏮️ Semana Pasada</option>
+                    </select>
+                </div>
+                
                 <div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
                      <button id="view-mode-daily" class="tab-btn active" style="flex:1;" onclick="window.gameInstance.switchRankingMode('daily')">📅 Diario</button>
                      <button id="view-mode-weekly" class="tab-btn" style="flex:1;" onclick="window.gameInstance.switchRankingMode('weekly')">📅 Semanal</button>
@@ -339,9 +346,15 @@ class SudokuGame {
             didOpen: () => {
                 this.currentRankingMode = 'daily';
                 this.currentRankingDiff = 'easy';
+                this.currentSwalWeekOffset = 0; // Default current week
                 this.loadRankingTab('easy');
             }
         });
+    }
+
+    onSwalWeekChange(value) {
+        this.currentSwalWeekOffset = (value === 'previous') ? 1 : 0;
+        this.loadRankingTab(this.currentRankingDiff);
     }
 
     switchRankingMode(mode) {
@@ -364,11 +377,16 @@ class SudokuGame {
         if (this.currentRankingMode === 'daily') {
             await this.loadDailyData(diff, listContainer);
         } else {
-            await this.loadWeeklyData(diff, listContainer);
+            await this.loadWeeklyData(diff, listContainer, this.currentSwalWeekOffset || 0);
         }
     }
 
     async loadDailyData(diff, container) {
+        // Daily data logic typically usually implies TODAY. 
+        // If we want "Previous Week Daily Data", we might need more complex UI (Select Day).
+        // For now, assuming Daily Tab always shows TODAY's ranking regardless of week selector (or we disable week selector for daily).
+        // User request specifically mentioned "Weekly Season", implying the week selector affects the Weekly Cup accumulation.
+
         const dailySeed = this.getDailySeed(diff);
         try {
             const snapshot = await db.collection('scores')
@@ -404,9 +422,15 @@ class SudokuGame {
         }
     }
 
-    async loadWeeklyData(diff, container) {
-        const ids = this.getWeeklyChallengeIds(diff);
-        const dates = this.getDatesSinceMonday();
+    async loadWeeklyData(diff, container, weekOffset = 0) {
+        // 1. Calculate correct week's challenge IDs
+        // We need to shift the "current date" back by weekOffset weeks
+        const referenceDate = new Date();
+        referenceDate.setDate(referenceDate.getDate() - (weekOffset * 7));
+
+        // Helper to get monotonic IDs for that specific week
+        const ids = this.getWeeklyChallengeIdsForDate(diff, referenceDate);
+        const dates = this.getDatesForWeekOf(referenceDate);
 
         try {
             // Fetch ALL scores for the week
@@ -416,22 +440,22 @@ class SudokuGame {
                 .get();
 
             // 1. Process Max Times per Day (for penalties)
-            const dayMaxTimes = {}; // { challengeId: maxSeconds }
+            const dayMaxTimes = {}; // { challengeId: maxSeconds } OR null if no one played
             const dayStats = {}; // { challengeId: { count: 0, date: Date } }
 
             // Init stats
             ids.forEach((id, idx) => {
                 dayStats[id] = { date: dates[idx], present: false };
-                dayMaxTimes[id] = 1800; // Default penalty 30 mins
+                dayMaxTimes[id] = null; // Default null (no one played)
             });
 
             snapshot.docs.forEach(doc => {
                 const d = doc.data();
                 const cid = d.challengeId;
                 if (dayStats[cid]) dayStats[cid].present = true;
-                // Find worst time (max) to use as penalty basis? 
-                // Or user requested: "busca el 'Peor Tiempo' registrado por cualquier usuario (MaxTime)"
-                if (d.seconds > dayMaxTimes[cid] || dayMaxTimes[cid] === 1800) {
+
+                // Track max time
+                if (dayMaxTimes[cid] === null || d.seconds > dayMaxTimes[cid]) {
                     dayMaxTimes[cid] = d.seconds;
                 }
             });
@@ -470,10 +494,17 @@ class SudokuGame {
                     if (u.days[id]) {
                         total += u.days[id];
                     } else {
-                        // PENALTY: MaxTime + Difficulty Bonus
-                        total += dayMaxTimes[id] + penaltyAdd;
-                        isPenalized = true;
-                        u.days[id] = -1; // Mark as missing
+                        // PENALTY LOGIC:
+                        // Only penalize if SOMEONE played that day (dayMaxTimes[id] !== null)
+                        if (dayMaxTimes[id] !== null) {
+                            const pTime = dayMaxTimes[id] + penaltyAdd;
+                            total += pTime;
+                            isPenalized = true;
+                            u.days[id] = -pTime; // Use negative to signal penalty value
+                        } else {
+                            // No one played => 0 penalty
+                            u.days[id] = 0;
+                        }
                     }
                 });
 
@@ -504,13 +535,18 @@ class SudokuGame {
                     const dayName = dates[idx].toLocaleDateString('es-ES', { weekday: 'long' });
                     const val = u.days[id];
 
-                    // Show full penalty in detail: (+MaxTime + Bonus) -> e.g. (+05:30)
-                    // We render the SUM of penalty
-                    const penaltyTimeForDay = dayMaxTimes[id] + penaltyAdd;
+                    let valStr = '';
+                    if (val > 0) {
+                        // Played
+                        valStr = this.formatTime(val);
+                    } else if (val < 0) {
+                        // Penalty (stored as negative)
+                        valStr = `<span style="color:#e53e3e">No jugado (+${this.formatTime(-val)})</span>`;
+                    } else {
+                        // 0 => No one played
+                        valStr = `<span style="color:#718096">Nadie jugó (0s)</span>`;
+                    }
 
-                    const valStr = val === -1
-                        ? `<span style="color:#e53e3e">No jugado (+${this.formatTime(penaltyTimeForDay)})</span>`
-                        : this.formatTime(val);
                     details += `<div style="display:flex; justify-content:space-between; font-size:0.9em; padding:2px 0;">
                         <span style="text-transform:capitalize">${dayName}</span>
                         <span>${valStr}</span>
