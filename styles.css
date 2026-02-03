@@ -305,9 +305,8 @@ body {
     width: 100%;
     height: 100%;
     /* background: var(--bg-page); REMOVED opaque background */
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(5px);
-    /* Use page background (gradient) */
+    background: rgba(0, 0, 0, 0.4);
+    /* Dimmed overlay */
     z-index: 1000;
     display: flex;
     flex-direction: column;
@@ -397,6 +396,9 @@ body {
 
 #username-input {
     flex: 1;
+    /* Allow flexible growth */
+    min-width: 0;
+    /* Allow shrinking below content size if needed */
     padding: 10px 12px;
     /* Smaller padding (-15% approx) */
     border-radius: 10px;
@@ -414,6 +416,8 @@ body {
 }
 
 .action-btn {
+    flex-shrink: 0;
+    /* Prevent button from shrinking */
     background: var(--accent);
     /* Button Blue/Action Color */
     color: white;
@@ -422,7 +426,7 @@ body {
     padding: 0 16px;
     /* Smaller width padding (-10% approx) */
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     /* Slightly smaller text */
     font-family: var(--font-family);
     cursor: pointer;

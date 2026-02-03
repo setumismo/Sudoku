@@ -1429,12 +1429,15 @@ class SudokuGame {
             const welcomeScreen = document.getElementById('welcome-screen');
             const homeView = document.getElementById('home-view');
 
+            // Always show Home View (as background)
+            if (homeView) homeView.classList.remove('hidden');
+
             if (user) {
                 // LOGGED IN
                 if (welcomeScreen) welcomeScreen.classList.add('hidden');
-                if (homeView) homeView.classList.remove('hidden');
 
                 // Get nick from profile or DB
+
                 let nick = user.displayName;
 
                 // Fallback to temporarily stored nick if available (for fresh Guest login)
@@ -1471,7 +1474,7 @@ class SudokuGame {
             } else {
                 // LOGGED OUT
                 if (welcomeScreen) welcomeScreen.classList.remove('hidden');
-                if (homeView) homeView.classList.add('hidden');
+                // Home view stays visible as background
             }
         });
     }
