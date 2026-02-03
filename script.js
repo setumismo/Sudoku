@@ -2110,59 +2110,22 @@ class SudokuGame {
 
     async showChallengeExplorer() {
         Swal.fire({
-            title: '📜 Últimos Retos',
-            html: '<div id="explorer-list" style="max-height:400px; overflow-y:auto; text-align:left;"><p style="text-align:center">Cargando...</p></div>',
+            title: 'Niveles de Reto',
+            html: `
+                <div style="margin-bottom: 20px;">
+                    <button class="menu-btn circle-btn circle-btn-small easy" onclick="window.gameInstance.renderChallengeGrid('easy')" style="display:inline-flex; width:40px; height:40px;">E</button>
+                    <button class="menu-btn circle-btn circle-btn-small medium" onclick="window.gameInstance.renderChallengeGrid('medium')" style="display:inline-flex; width:40px; height:40px;">M</button>
+                    <button class="menu-btn circle-btn circle-btn-small hard" onclick="window.gameInstance.renderChallengeGrid('hard')" style="display:inline-flex; width:40px; height:40px;">H</button>
+                </div>
+                <div id="challenge-grid-container" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-height: 400px; overflow-y: auto; padding: 10px;">
+                    <p>Selecciona una dificultad...</p>
+                </div>
+            `,
             showCloseButton: true,
             showConfirmButton: false,
-            didOpen: async () => {
-                const container = document.getElementById('explorer-list');
-                try {
-                    const snapshot = await db.collection('challenges')
-                        .orderBy('createdAt', 'desc')
-                        .limit(10)
-                        .get();
-
-                    if (snapshot.empty) {
-                        container.innerHTML = '<p style="text-align:center; color:#aaa">No hay retos recientes.</p>';
-                        return;
-                    }
-
-                    let html = '';
-                    snapshot.forEach(doc => {
-                        const c = doc.data();
-                        let timeAgo = '';
-                        if (c.createdAt) {
-                            const date = c.createdAt.toDate();
-                            timeAgo = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                        }
-
-                        const diffColor = c.difficulty === 'easy' ? '#48bb78' : c.difficulty === 'medium' ? '#ecc94b' : '#f56565';
-                        const diffName = c.difficulty === 'easy' ? 'Fácil' : c.difficulty === 'medium' ? 'Medio' : 'Difícil';
-
-                        html += `
-                             <div style="background:#fff; border:1px solid #eee; border-radius:10px; padding:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
-                                 <div>
-                                     <div style="font-weight:bold; font-size:1.1em; color:#2d3748;">
-                                         ${c.code} 
-                                         <span style="font-size:0.8em; background:${diffColor}; color:white; padding:2px 6px; border-radius:4px; margin-left:5px;">${diffName}</span>
-                                     </div>
-                                     <div style="font-size:0.8em; color:#718096; margin-top:2px;">
-                                         Por: <b>${c.createdByNick || 'Anónimo'}</b> • ${timeAgo}
-                                     </div>
-                                 </div>
-                                 <div style="display:flex; gap:5px;">
-                                     <button onclick="window.gameInstance.startChallengeFromExplorer('${c.code}', '${c.seed}', '${c.difficulty}')" style="background:#4c6ef5; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;" title="Jugar">⚔️</button>
-                                     <button onclick="window.gameInstance.showChallengeLeaderboard('${c.code}')" style="background:#e2e8f0; color:#4a5568; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;" title="Ranking">🏆</button>
-                                 </div>
-                             </div>
-                         `;
-                    });
-                    container.innerHTML = html;
-
-                } catch (e) {
-                    console.error("Explorer error:", e);
-                    container.innerHTML = '<p style="color:red; text-align:center">Error cargando lista.</p>';
-                }
+            didOpen: () => {
+                // Default to Medium logic
+                this.renderChallengeGrid('medium');
             }
         });
     }
