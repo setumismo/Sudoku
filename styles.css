@@ -357,8 +357,9 @@ body {
     width: 100%;
     max-width: 280px;
     margin: 10px 0;
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 0.9rem;
+    color: #666;
+    /* Darker for white card */
+    font-size: 0.85rem;
 }
 
 .divider::before,
@@ -366,30 +367,50 @@ body {
     content: '';
     flex: 1;
     height: 1px;
-    background: rgba(255, 255, 255, 0.4);
+    background: #e0e0e0;
+    /* Lighter line for white card */
     margin: 0 10px;
+}
+
+/* Floating Card Container */
+.welcome-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 30px 20px;
+    width: 90%;
+    max-width: 340px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
 }
 
 .guest-input-group {
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    /* Slightly tighter gap */
     width: 100%;
-    max-width: 320px;
     align-items: stretch;
 }
 
 #username-input {
     flex: 1;
-    padding: 12px;
-    border-radius: 12px;
-    border: none;
+    padding: 10px 12px;
+    /* Smaller padding (-15% approx) */
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    /* Subtle border for card context */
     outline: none;
     font-family: var(--font-family);
-    font-size: 1rem;
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-size: 0.95rem;
+    background: #f8f9fa;
+    /* Light gray background */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    /* Inset shadow */
     text-align: left;
-    padding-left: 15px;
+    color: #333;
 }
 
 .action-btn {
@@ -397,16 +418,22 @@ body {
     /* Button Blue/Action Color */
     color: white;
     border: none;
-    border-radius: 12px;
-    padding: 0 20px;
+    border-radius: 10px;
+    padding: 0 16px;
+    /* Smaller width padding (-10% approx) */
     font-weight: 700;
+    font-size: 0.9rem;
+    /* Slightly smaller text */
     font-family: var(--font-family);
     cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    transition: transform 0.1s;
+    box-shadow: 0 4px 10px rgba(76, 110, 245, 0.3);
+    /* Colored shadow */
+    transition: transform 0.1s, box-shadow 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .action-btn:active {
