@@ -22,12 +22,34 @@
 <body>
     <div class="app-container">
 
+        <!-- VIEW: WELCOME SCREEN (Hybrid Auth) -->
+        <div id="welcome-screen" class="screen hidden">
+            <h1>SUDOKU SAGA</h1>
+
+            <button id="btn-login-google" class="google-btn">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="G"
+                    width="20">
+                Entrar con Google
+            </button>
+
+            <div class="divider">
+                <span>ó juega sin guardar</span>
+            </div>
+
+            <div class="login-option guest-option">
+                <input type="text" id="username-input" placeholder="Tu Nick (Opcional)" maxlength="15">
+                <button id="start-guest-btn" class="menu-btn secondary">Entrar como Invitado</button>
+            </div>
+        </div>
+
         <!-- VIEW: HOME (Menu) -->
-        <div id="home-view">
+        <div id="home-view" class="hidden">
             <header class="home-header">
                 <img src="logo.png" alt="Sudoku Familia" class="logo-large">
                 <div class="user-greeting">
                     Hola, <span id="user-nick-display" class="highlight-nick">...</span>
+                    <!-- Edit Button -->
+                    <button id="btn-edit-nick" class="icon-btn-small" title="Cambiar Nombre">✏️</button>
                 </div>
             </header>
 

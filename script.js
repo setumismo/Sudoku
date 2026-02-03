@@ -213,20 +213,6 @@ class SudokuGame {
             tabBtns: document.querySelectorAll('.tab-btn'),
 
             // Footer Elements
-            gameFooter: document.getElementById('game-footer'),
-            btnNewGameBig: document.getElementById('btn-new-game-big'),
-        };
-
-        this.setupEventListeners();
-        this.loadTheme();
-        this.checkAuth();
-
-        // Initial Audio Context
-        const initAudio = () => {
-            if (this.soundManager) {
-                this.soundManager.init();
-                document.removeEventListener('click', initAudio);
-            }
         };
         document.addEventListener('click', initAudio);
 
@@ -1437,95 +1423,132 @@ class SudokuGame {
     checkAuth() {
         if (!auth) return;
         auth.onAuthStateChanged((user) => {
+            const welcomeScreen = document.getElementById('welcome-screen');
+            const homeView = document.getElementById('home-view');
+
             if (user) {
+                // LOGGED IN
+                if (welcomeScreen) welcomeScreen.classList.add('hidden');
+                if (homeView) homeView.classList.remove('hidden');
+
+                // Get nick from profile or DB
+                let nick = user.displayName;
                 db.collection('users').doc(user.uid).get().then((doc) => {
                     if (doc.exists) {
-                        this.currentUserNick = doc.data().nick;
-                        console.log("Welcome back:", this.currentUserNick);
+                        nick = doc.data().nick || nick;
+                        this.currentUserNick = nick;
                         this.updateUserDisplay();
-                        this.checkDailyStatus(); // Check if played today AFTER auth ready
                     } else {
-                        console.warn("Profile missing. Re-starting flow.");
-                        this.handleFirstLogin();
+                        // Create Basic User Doc if missing
+                        db.collection('users').doc(user.uid).set({
+                            uid: user.uid,
+                            nick: nick || 'Anónimo',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+                        this.currentUserNick = nick || 'Anónimo';
+                        this.updateUserDisplay();
                     }
                 }).catch(e => {
-                    console.error("Auth Error:", e);
-                    this.handleFirstLogin();
+                    console.log("Error checking user doc:", e);
+                    this.currentUserNick = user.displayName || 'Anónimo';
+                    this.updateUserDisplay();
                 });
+
+                this.checkDailyStatus();
+
             } else {
-                this.handleFirstLogin();
+                // LOGGED OUT
+                if (welcomeScreen) welcomeScreen.classList.remove('hidden');
+                if (homeView) homeView.classList.add('hidden');
             }
         });
     }
 
-    async handleFirstLogin() {
-        let isValid = false;
-        let finalNick = "";
-
-        while (!isValid) {
-            const { value: nickname } = await Swal.fire({
-                title: 'Bienvenido a Sudoku',
-                text: 'Elige un nombre único para el ranking',
-                input: 'text',
-                inputPlaceholder: 'Tu Nick',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                confirmButtonText: 'Jugar',
-                inputValidator: (value) => {
-                    if (!value) return '¡Debes escribir un nombre!';
-                    if (value.length < 3) return 'Mínimo 3 caracteres';
-                    if (value.length > 12) return 'Máximo 12 caracteres';
-                }
+    initAuth() {
+        // Google Login
+        const btnGoogle = document.getElementById('btn-login-google');
+        if (btnGoogle) {
+            btnGoogle.addEventListener('click', () => {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                auth.signInWithPopup(provider).catch(error => {
+                    console.error("Google Sign Error:", error);
+                    Swal.fire("Error", "No se pudo entrar con Google", "error");
+                });
             });
-
-            if (nickname) {
-                Swal.showLoading();
-                try {
-                    const snapshot = await db.collection('users').where('nick', '==', nickname).get();
-                    if (!snapshot.empty) {
-                        await Swal.fire({
-                            icon: 'error',
-                            title: 'Nombre ocupado',
-                            text: `El nick "${nickname}" ya existe. Por favor elige otro.`
-                        });
-                    } else {
-                        isValid = true;
-                        finalNick = nickname;
-                    }
-                } catch (error) {
-                    console.error("Check Error:", error);
-                    await Swal.fire("Error", "No se pudo verificar el nombre. Intenta de nuevo.", "error");
-                }
-            }
         }
 
-        try {
-            const result = await auth.signInAnonymously();
-            const user = result.user;
-
-            await db.collection('users').doc(user.uid).set({
-                uid: user.uid,
-                nick: finalNick,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        // Guest Login
+        const btnGuest = document.getElementById('start-guest-btn');
+        const inputGuest = document.getElementById('username-input');
+        if (btnGuest) {
+            btnGuest.addEventListener('click', () => {
+                const nick = inputGuest.value.trim();
+                auth.signInAnonymously().then((result) => {
+                    if (nick) {
+                        result.user.updateProfile({ displayName: nick }).then(() => {
+                            // Also update 'users' collection
+                            db.collection('users').doc(result.user.uid).set({
+                                uid: result.user.uid,
+                                nick: nick,
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            }, { merge: true });
+                        });
+                    }
+                }).catch(error => {
+                    console.error("Guest Sign Error:", error);
+                    Swal.fire("Error", "No se pudo entrar como invitado", "error");
+                });
             });
+        }
 
-            this.currentUserNick = finalNick;
-            this.updateUserDisplay();
-
-            Swal.fire({
-                icon: 'success',
-                title: `¡Bienvenido, ${finalNick}!`,
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000
+        // Edit Nick
+        const btnEdit = document.getElementById('btn-edit-nick');
+        if (btnEdit) {
+            btnEdit.addEventListener('click', () => {
+                this.editNick();
             });
-
-        } catch (error) {
-            console.error("Login Fatal Error:", error);
-            Swal.fire("Error Crítico", "No se pudo crear la cuenta: " + error.message, "error");
         }
     }
+
+    async editNick() {
+        if (!auth.currentUser) return;
+
+        const { value: newNick } = await Swal.fire({
+            title: 'Editar Nombre',
+            input: 'text',
+            inputValue: this.currentUserNick,
+            showCancelButton: true,
+            inputValidator: (value) => {
+                if (!value) return '¡Escribe algo!';
+            }
+        });
+
+        if (newNick) {
+            try {
+                await auth.currentUser.updateProfile({ displayName: newNick });
+                await db.collection('users').doc(auth.currentUser.uid).set({
+                    nick: newNick
+                }, { merge: true });
+
+                this.currentUserNick = newNick;
+                this.updateUserDisplay();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Nombre actualizado',
+                    toast: true,
+                    position: 'top-end',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } catch (e) {
+                console.error("Update nick error:", e);
+                Swal.fire("Error", "No se pudo actualizar el nombre", "error");
+            }
+        }
+    }
+
+    // Removed handleFirstLogin as it is replaced by welcome screen logic
+
 
     updateUserDisplay() {
         if (this.dom.userDisplay && this.currentUserNick) {
