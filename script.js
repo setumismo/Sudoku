@@ -227,6 +227,11 @@ class SudokuGame {
     showHome() {
         this.dom.homeView.classList.remove('hidden');
         this.dom.gameView.classList.add('hidden');
+
+        // Ensure New Game button is hidden in Home
+        const footer = document.getElementById('game-footer');
+        if (footer) footer.classList.add('hidden');
+
         this.updateThemeIcons();
         this.stopTimer();
 
@@ -938,6 +943,17 @@ class SudokuGame {
         this.currentScoreId = null;
         if (this.currentChallengeCode) {
             this.registerParticipant();
+        }
+
+        // Lógica VISIBILIDAD Botón Nueva Partida
+        const footer = document.getElementById('game-footer');
+        if (footer) {
+            // Solo mostrar si NO hay semilla (Juego Libre) y NO hay código de reto
+            if (!seed && !challengeCode) {
+                footer.classList.remove('hidden');
+            } else {
+                footer.classList.add('hidden');
+            }
         }
 
         // Sync UI select
@@ -2181,66 +2197,54 @@ class SudokuGame {
 
     // --- LEVEL COMPLETION LOGIC ---
 
-    async fetchCompletedChallenges(difficulty) {
-        if (!auth.currentUser) return new Set();
-
-        try {
-            // Query scores where userId matches and difficulty matches
-            // We assume the challengeId follows the pattern CHALLENGE-{difficulty}-{i}
-            const snapshot = await db.collection('scores')
-                .where('uid', '==', auth.currentUser.uid)
-                .where('difficulty', '==', difficulty)
-                .get();
-
-            const completed = new Set();
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                if (data.challengeId) {
-                    completed.add(data.challengeId);
-                }
-            });
-            return completed;
-        } catch (error) {
-            console.error("Error fetching completed challenges:", error);
-            return new Set();
-        }
-    }
-
     async renderChallengeGrid(difficulty) {
-        this.currentDifficulty = difficulty; // Ensure difficulty is set
-        const container = document.getElementById('challenge-grid-container'); // Hypothetical container
-        if (!container) {
-            console.log("No challenge grid container found yet.");
-            // If the container doesn't exist, we just return logic for future use
-            return;
+        this.currentDifficulty = difficulty;
+        const container = document.getElementById('challenge-grid-container');
+        if (!container) return;
+
+        container.innerHTML = 'Cargando...';
+
+        // 1. Obtener completados
+        const completedSet = new Set();
+        if (this.currentUserNick && auth.currentUser) {
+            try {
+                // Assuming challengeId is CHALLENGE-DIFFICULTY-NUM
+                const snapshot = await db.collection('scores')
+                    .where('uid', '==', auth.currentUser.uid)
+                    .where('difficulty', '==', difficulty)
+                    .where('challengeId', '>=', 'CHALLENGE-' + difficulty.toUpperCase())
+                    .get();
+                snapshot.docs.forEach(doc => {
+                    const data = doc.data();
+                    if (data.challengeId) completedSet.add(data.challengeId);
+                });
+            } catch (e) {
+                console.error("Error fetching completed", e);
+            }
         }
 
-        container.innerHTML = '<div style="text-align:center;">Cargando progreso...</div>';
+        container.innerHTML = '';
 
-        const completedSet = await this.fetchCompletedChallenges(difficulty);
-
-        container.innerHTML = ''; // Clear loading
-
+        // 2. Generar Botones
         for (let i = 1; i <= 50; i++) {
-            const challengeId = `CHALLENGE-${difficulty}-${i}`;
             const btn = document.createElement('button');
-            btn.className = 'challenge-btn';
             btn.textContent = i;
+            btn.className = 'level-btn'; // Clase base
 
-            // Checks completion
+            // ID del reto (Debe coincidir con como lo guardas)
+            const challengeId = `CHALLENGE-${difficulty.toUpperCase()}-${i}`;
+
+            // 3. Aplicar Check
             if (completedSet.has(challengeId)) {
                 btn.classList.add('completed');
-                // Optional: Checkmark already handled by CSS pseudo-element or add manually if preferred
-                // btn.innerHTML += '<span class="check-icon">✓</span>'; 
+                btn.innerHTML += ' <span class="check-mark">✓</span>';
             }
 
-            // Click handler (Example)
             btn.onclick = () => {
-                const seed = `SEED-${difficulty}-${i}`; // Deterministic seed for this level
+                const seed = `SEED-${difficulty.toUpperCase()}-${i}`;
                 this.startNewGame(seed, challengeId);
                 this.showGame();
             };
-
             container.appendChild(btn);
         }
     }
