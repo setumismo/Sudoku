@@ -1475,7 +1475,10 @@ class SudokuGame {
                 const provider = new firebase.auth.GoogleAuthProvider();
                 auth.signInWithPopup(provider).catch(error => {
                     console.error("Google Sign Error:", error);
-                    Swal.fire("Error", "No se pudo entrar con Google", "error");
+                    // Ignore popup closed by user
+                    if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                        Swal.fire("Error", "No se pudo entrar con Google", "error");
+                    }
                 });
             });
         }
@@ -1488,6 +1491,10 @@ class SudokuGame {
                 const nick = inputGuest.value.trim();
                 auth.signInAnonymously().then((result) => {
                     if (nick) {
+                        // Immediately update local UI to avoid "Anonymous" flash
+                        this.currentUserNick = nick;
+                        this.updateUserDisplay();
+
                         result.user.updateProfile({ displayName: nick }).then(() => {
                             // Also update 'users' collection
                             db.collection('users').doc(result.user.uid).set({
