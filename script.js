@@ -1728,10 +1728,8 @@ class SudokuGame {
                 console.log(`Fetching Global Free Play scores for difficulty: ${difficulty}`);
             }
 
-            const querySnapshot = await query
-                .orderBy("seconds", "asc")
-                .limit(20)
-                .get();
+            // Fetch all scores for this difficulty (Client-side sort to avoid complex index needs)
+            const querySnapshot = await query.get();
 
             let list = [];
             querySnapshot.forEach((doc) => {
