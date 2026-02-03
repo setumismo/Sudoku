@@ -24,7 +24,8 @@
 
         <!-- VIEW: WELCOME SCREEN (Hybrid Auth) -->
         <div id="welcome-screen" class="screen">
-            <h1>SUDOKU SAGA</h1>
+            <img src="logo.png" alt="Sudoku Familia" class="logo-large"
+                style="margin-bottom: 20px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));">
 
             <button id="btn-login-google" class="google-btn">
                 <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="G" width="24"
@@ -33,12 +34,12 @@
             </button>
 
             <div class="divider">
-                <span>ó juega sin guardar</span>
+                <span>O entra con tu nombre</span>
             </div>
 
-            <div class="login-option guest-option">
-                <input type="text" id="username-input" placeholder="Tu Nick (Opcional)" maxlength="15">
-                <button id="start-guest-btn" class="menu-btn secondary">Entrar como Invitado</button>
+            <div class="guest-input-group">
+                <input type="text" id="username-input" placeholder="Tu Nombre" maxlength="15">
+                <button id="start-guest-btn" class="action-btn">ENTRAR</button>
             </div>
         </div>
 
