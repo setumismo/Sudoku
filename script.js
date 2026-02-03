@@ -745,6 +745,19 @@ class SudokuGame {
             this.dom.victoryModal.classList.add('hidden');
             this.showLeaderboard(this.difficulty);
         });
+
+        // NEW: Week Selector Listener
+        const weekSelect = document.getElementById('leaderboard-week-select');
+        if (weekSelect) {
+            weekSelect.addEventListener('change', (e) => {
+                const offset = e.target.value === 'previous' ? 1 : 0;
+                // Reload ranking with chosen week and current difficulty
+                // We need to store current diff to reload correctly
+                const currentDiff = this.currentLeaderboardDiff || 'easy';
+                this.renderLeaderboardScores(currentDiff, offset);
+            });
+        }
+
         this.dom.closeLeaderboardBtn.addEventListener('click', () => { this.dom.leaderboardModal.classList.add('hidden'); });
 
         this.dom.tabBtns.forEach(btn => {
@@ -1488,6 +1501,15 @@ class SudokuGame {
         }
     }
 
+    getWeekId(date = new Date()) {
+        const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const year = d.getUTCFullYear();
+        const weekNo = Math.ceil((((d - new Date(Date.UTC(year, 0, 1))) / 86400000) + 1) / 7);
+        return `${year}-W${weekNo.toString().padStart(2, '0')}`;
+    }
+
     async saveScore(name) {
         const timeStr = this.dom.timer.textContent;
         const seconds = this.timer;
@@ -1509,7 +1531,9 @@ class SudokuGame {
                     timeStr: timeStr,
                     seconds: seconds,
                     difficulty: this.difficulty,
-                    date: date
+                    date: date,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    weekId: this.getWeekId() // <--- NEW: Save Week ID
                 };
 
                 // If it's a daily challenge, add the ID
@@ -1538,15 +1562,25 @@ class SudokuGame {
         this.renderLeaderboardScores(diff);
     }
 
-    async renderLeaderboardScores(difficulty) {
+    async renderLeaderboardScores(difficulty, weekOffset = 0) {
+        this.currentLeaderboardDiff = difficulty; // Store for reload
         this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Cargando...</div>';
+
         try {
             if (!db) throw new Error("Database not initialized");
 
-            console.log(`Fetching scores for difficulty: ${difficulty}`);
+            // Calculate Target Week ID
+            const targetDate = new Date();
+            targetDate.setDate(targetDate.getDate() - (weekOffset * 7));
+            const targetWeekId = this.getWeekId(targetDate);
+
+            console.log(`Fetching scores for difficulty: ${difficulty}, week: ${targetWeekId}`);
+
             const querySnapshot = await db.collection("scores")
                 .where("difficulty", "==", difficulty)
-                .limit(100)
+                .where("weekId", "==", targetWeekId) // <--- NEW: Filter by Week
+                .orderBy("seconds", "asc") // Ensure we order by seconds implicitly via query index if needed
+                .limit(20)
                 .get();
 
             let list = [];

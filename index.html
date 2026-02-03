@@ -342,6 +342,13 @@
     <div id="leaderboard-modal" class="modal hidden">
         <div class="modal-content wide">
             <h2>Ranking Mundial 🌍</h2>
+            <div class="week-selector-container" style="margin-bottom: 15px; text-align: center;">
+                <select id="leaderboard-week-select"
+                    style="padding: 8px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem;">
+                    <option value="current">📅 Semana Actual</option>
+                    <option value="previous">⏮️ Semana Pasada</option>
+                </select>
+            </div>
             <div class="tabs">
                 <button class="tab-btn active" data-diff="easy">Fácil</button>
                 <button class="tab-btn" data-diff="medium">Medio</button>
