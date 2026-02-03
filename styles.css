@@ -370,31 +370,47 @@ body {
     margin: 0 10px;
 }
 
-.guest-option {
+.guest-input-group {
     display: flex;
-    flex-direction: column;
     gap: 10px;
     width: 100%;
-    max-width: 280px;
+    max-width: 320px;
+    align-items: stretch;
 }
 
 #username-input {
+    flex: 1;
     padding: 12px;
     border-radius: 12px;
     border: none;
     outline: none;
-    text-align: center;
     font-family: var(--font-family);
     font-size: 1rem;
     background: rgba(255, 255, 255, 0.9);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: left;
+    padding-left: 15px;
 }
 
-#start-guest-btn {
-    background: rgba(255, 255, 255, 0.2);
+.action-btn {
+    background: var(--accent);
+    /* Button Blue/Action Color */
     color: white;
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: none;
+    border-radius: 12px;
+    padding: 0 20px;
+    font-weight: 700;
+    font-family: var(--font-family);
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn:active {
+    transform: scale(0.95);
 }
 
 .icon-btn-small {

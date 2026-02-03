@@ -2152,14 +2152,16 @@ class SudokuGame {
     }
 }
 
-// Start the game (Standard JS load)
-window.gameInstance = new SudokuGame();
+// Start the game (Wait for DOM/Load)
+window.addEventListener('load', () => {
+    // Check if offline/persistence error happened first? No matter.
+    console.log("App Loaded. Initializing Game...");
+    window.gameInstance = new SudokuGame();
 
-// Register Service Worker for PWA
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js')
             .then(reg => console.log('Service Worker Registered!', reg))
             .catch(err => console.error('Service Worker Failed', err));
-    });
-}
+    }
+});
