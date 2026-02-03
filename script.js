@@ -423,16 +423,16 @@ class SudokuGame {
     }
 
     async loadWeeklyData(diff, container, weekOffset = 0) {
-        // 1. Calculate correct week's challenge IDs
-        // We need to shift the "current date" back by weekOffset weeks
-        const referenceDate = new Date();
-        referenceDate.setDate(referenceDate.getDate() - (weekOffset * 7));
-
-        // Helper to get monotonic IDs for that specific week
-        const ids = this.getWeeklyChallengeIdsForDate(diff, referenceDate);
-        const dates = this.getDatesForWeekOf(referenceDate);
-
         try {
+            // 1. Calculate correct week's challenge IDs
+            // We need to shift the "current date" back by weekOffset weeks
+            const referenceDate = new Date();
+            referenceDate.setDate(referenceDate.getDate() - (weekOffset * 7));
+
+            // Helper to get monotonic IDs for that specific week
+            const ids = this.getWeeklyChallengeIdsForDate(diff, referenceDate);
+            const dates = this.getDatesForWeekOf(referenceDate);
+
             // Fetch ALL scores for the week
             const snapshot = await db.collection('scores')
                 .where('challengeId', 'in', ids)
@@ -1535,6 +1535,33 @@ class SudokuGame {
             this.dom.playerName.value = this.currentUserNick;
             this.dom.playerName.disabled = true;
         }
+    }
+
+    getWeeklyChallengeIdsForDate(diff, date) {
+        // Generates the 7 challenge IDs for the week containing 'date'
+        const dates = this.getDatesForWeekOf(date);
+        return dates.map(d => {
+            const y = d.getFullYear();
+            const m = (d.getMonth() + 1).toString().padStart(2, '0');
+            const day = d.getDate().toString().padStart(2, '0');
+            return `DAILY-${diff}-${y}-${m}-${day}`;
+        });
+    }
+
+    getDatesForWeekOf(date) {
+        // Returns array of 7 Date objects (Mon-Sun) for the week of 'date'
+        const d = new Date(date);
+        const day = d.getDay(); // 0 is Sunday
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+        const monday = new Date(d.setDate(diff));
+
+        const weekDates = [];
+        for (let i = 0; i < 7; i++) {
+            const nextDay = new Date(monday);
+            nextDay.setDate(monday.getDate() + i);
+            weekDates.push(nextDay);
+        }
+        return weekDates;
     }
 
     getWeekId(date = new Date()) {
