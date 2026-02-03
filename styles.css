@@ -741,6 +741,20 @@ body {
     display: none !important;
 }
 
+/* --- FIX PAUSE OVERLAY --- */
+#pause-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 200;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
 /* Wrapper Adaptation 
    The original .app-container governed layout. Now we have wrapper divs.
    This ensures the wrappers behave like the original container context.
