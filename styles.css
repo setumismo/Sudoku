@@ -1667,3 +1667,49 @@ body {
 .hidden {
     display: none !important;
 }
+
+/* --- CHALLENGE GRID STYLES --- */
+.challenge-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    background: white;
+    color: #4a5568;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    /* For checkmark positioning */
+    font-family: var(--font-family);
+}
+
+.challenge-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* Completed State */
+.challenge-btn.completed {
+    border-color: #2ecc71 !important;
+    /* Emerald Green */
+    background-color: #f0fff4;
+    color: #27ae60;
+}
+
+/* Optional Checkmark */
+.challenge-btn.completed::after {
+    content: '✓';
+    font-size: 0.7rem;
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    color: #2ecc71;
+    font-weight: 800;
+}

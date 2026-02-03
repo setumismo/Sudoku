@@ -2215,6 +2215,72 @@ class SudokuGame {
             return `DAILY-${year}-${month}-${day}-${difficulty.toUpperCase()}`;
         });
     }
+
+    // --- LEVEL COMPLETION LOGIC ---
+
+    async fetchCompletedChallenges(difficulty) {
+        if (!auth.currentUser) return new Set();
+
+        try {
+            // Query scores where userId matches and difficulty matches
+            // We assume the challengeId follows the pattern CHALLENGE-{difficulty}-{i}
+            const snapshot = await db.collection('scores')
+                .where('uid', '==', auth.currentUser.uid)
+                .where('difficulty', '==', difficulty)
+                .get();
+
+            const completed = new Set();
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.challengeId) {
+                    completed.add(data.challengeId);
+                }
+            });
+            return completed;
+        } catch (error) {
+            console.error("Error fetching completed challenges:", error);
+            return new Set();
+        }
+    }
+
+    async renderChallengeGrid(difficulty) {
+        this.currentDifficulty = difficulty; // Ensure difficulty is set
+        const container = document.getElementById('challenge-grid-container'); // Hypothetical container
+        if (!container) {
+            console.log("No challenge grid container found yet.");
+            // If the container doesn't exist, we just return logic for future use
+            return;
+        }
+
+        container.innerHTML = '<div style="text-align:center;">Cargando progreso...</div>';
+
+        const completedSet = await this.fetchCompletedChallenges(difficulty);
+
+        container.innerHTML = ''; // Clear loading
+
+        for (let i = 1; i <= 50; i++) {
+            const challengeId = `CHALLENGE-${difficulty}-${i}`;
+            const btn = document.createElement('button');
+            btn.className = 'challenge-btn';
+            btn.textContent = i;
+
+            // Checks completion
+            if (completedSet.has(challengeId)) {
+                btn.classList.add('completed');
+                // Optional: Checkmark already handled by CSS pseudo-element or add manually if preferred
+                // btn.innerHTML += '<span class="check-icon">✓</span>'; 
+            }
+
+            // Click handler (Example)
+            btn.onclick = () => {
+                const seed = `SEED-${difficulty}-${i}`; // Deterministic seed for this level
+                this.startNewGame(seed, challengeId);
+                this.showGame();
+            };
+
+            container.appendChild(btn);
+        }
+    }
 }
 
 // Start the game (Wait for DOM/Load)
