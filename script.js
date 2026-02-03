@@ -1673,22 +1673,37 @@ class SudokuGame {
 
     async renderLeaderboardScores(difficulty, weekOffset = 0) {
         this.currentLeaderboardDiff = difficulty; // Store for reload
+
+        // Toggle Period Selector (Only for Weekly Cup)
+        const periodSelect = document.getElementById('leaderboard-period-select');
+        const isWeekly = difficulty.includes('DAILY');
+        if (periodSelect) {
+            periodSelect.style.display = isWeekly ? 'block' : 'none';
+        }
+
         this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Cargando...</div>';
 
         try {
             if (!db) throw new Error("Database not initialized");
 
-            // Calculate Target Week ID
-            const targetDate = new Date();
-            targetDate.setDate(targetDate.getDate() - (weekOffset * 7));
-            const targetWeekId = this.getWeekId(targetDate);
+            let query = db.collection("scores").where("difficulty", "==", difficulty);
 
-            console.log(`Fetching scores for difficulty: ${difficulty}, week: ${targetWeekId}`);
+            // Only filter by Week if it's a Weekly/Daily Cup. free-play should be all-time.
+            const isWeekly = difficulty.includes('DAILY');
 
-            const querySnapshot = await db.collection("scores")
-                .where("difficulty", "==", difficulty)
-                .where("weekId", "==", targetWeekId) // <--- NEW: Filter by Week
-                .orderBy("seconds", "asc") // Ensure we order by seconds implicitly via query index if needed
+            if (isWeekly) {
+                // Calculate Target Week ID
+                const targetDate = new Date();
+                targetDate.setDate(targetDate.getDate() - (weekOffset * 7));
+                const targetWeekId = this.getWeekId(targetDate);
+                console.log(`Fetching scores for difficulty: ${difficulty}, week: ${targetWeekId}`);
+                query = query.where("weekId", "==", targetWeekId);
+            } else {
+                console.log(`Fetching Global Free Play scores for difficulty: ${difficulty}`);
+            }
+
+            const querySnapshot = await query
+                .orderBy("seconds", "asc")
                 .limit(20)
                 .get();
 
