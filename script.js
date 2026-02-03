@@ -1496,8 +1496,25 @@ class SudokuGame {
         const btnGuest = document.getElementById('start-guest-btn');
         const inputGuest = document.getElementById('username-input');
         if (btnGuest) {
-            btnGuest.addEventListener('click', () => {
+            btnGuest.addEventListener('click', async () => {
                 const nick = inputGuest.value.trim();
+
+                if (!nick) {
+                    Swal.fire("Error", "Por favor escribe un nombre", "warning");
+                    return;
+                }
+
+                // Check uniqueness BEFORE creating auth
+                try {
+                    const snapshot = await db.collection('users').where('nick', '==', nick).get();
+                    if (!snapshot.empty) {
+                        Swal.fire("Error", "Este nombre ya está en uso. Elige otro.", "error");
+                        return;
+                    }
+                } catch (e) {
+                    console.error("Error checking nick:", e);
+                    // Continue? Or block? Better block to be safe or warn.
+                }
 
                 // Store nick temporarily for checkAuth to find it immediately
                 if (nick) this.temporaryGuestNick = nick;
@@ -1548,6 +1565,15 @@ class SudokuGame {
 
         if (newNick) {
             try {
+                // Check uniqueness
+                const snapshot = await db.collection('users').where('nick', '==', newNick).get();
+                const isTaken = snapshot.docs.some(doc => doc.id !== auth.currentUser.uid);
+
+                if (isTaken) {
+                    Swal.fire("Error", "Este nombre ya está en uso. Elige otro.", "error");
+                    return;
+                }
+
                 await auth.currentUser.updateProfile({ displayName: newNick });
                 await db.collection('users').doc(auth.currentUser.uid).set({
                     nick: newNick
