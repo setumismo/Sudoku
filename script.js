@@ -1827,6 +1827,7 @@ class SudokuGame {
                 this.difficulty = diff;
                 if (this.dom.difficultySelect) this.dom.difficultySelect.value = diff;
                 this.startNewGame(levelId, levelId);
+                this.showGame(); // Start game view
             };
 
             this.dom.adventureGrid.appendChild(btn);
