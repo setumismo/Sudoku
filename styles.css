@@ -284,6 +284,7 @@ body {
     top: 0;
     left: 0;
     pointer-events: none;
+    padding: 2px;
 }
 
 .note {
@@ -293,7 +294,6 @@ body {
     font-size: 0.7rem;
     color: var(--note-color);
     font-weight: 600;
-    padding-left: 2px;
 }
 
 /* Controls */
