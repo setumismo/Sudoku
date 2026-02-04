@@ -235,6 +235,10 @@ class SudokuGame {
         this.dom.homeView.classList.remove('hidden');
         this.dom.gameView.classList.add('hidden');
 
+        // Explicitly show floating settings if they exist
+        const floatSettings = document.querySelector('.floating-settings');
+        if (floatSettings) floatSettings.classList.remove('hidden');
+
         // Ensure New Game button is hidden in Home
         const footer = document.getElementById('game-footer');
         if (footer) footer.classList.add('hidden');
@@ -589,6 +593,11 @@ class SudokuGame {
     showGame() {
         this.dom.homeView.classList.add('hidden');
         this.dom.gameView.classList.remove('hidden');
+
+        // Explicitly hide floating settings if they exist
+        const floatSettings = document.querySelector('.floating-settings');
+        if (floatSettings) floatSettings.classList.add('hidden');
+
         this.updateThemeIcons();
     }
 
