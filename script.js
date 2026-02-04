@@ -1734,7 +1734,8 @@ class SudokuGame {
                 }
 
                 // CHECK ADVENTURE MODE
-                if (this.currentChallengeCode && this.currentChallengeCode.startsWith('ADV-LVL-')) {
+                // Now supports Monthly Reset: ADV-YYYY-MM-LVL-X
+                if (this.currentChallengeCode && this.currentChallengeCode.startsWith('ADV-')) {
                     scoreData.challengeId = this.currentChallengeCode;
 
                     if (auth && auth.currentUser) {
@@ -1789,33 +1790,14 @@ class SudokuGame {
         if (!this.dom.adventureGrid) return;
         this.dom.adventureGrid.innerHTML = '<div class="spinner"></div>';
 
-        const completedSet = new Set();
-        if (db && auth && auth.currentUser) {
-            try {
-                // Optimize: in a real app, maybe store "completedLevels" array in user profile
-                // For now, query scores for this user where challengeId starts with ADV
-                // Note: Firestore doesn't support "startsWith" in query easily without separate field or range
-                // We'll fetch all scores for user and filter client side or use range query if possible.
-                // Range query: challengeId >= 'ADV-LVL-' && challengeId < 'ADV-LVL-\uf8ff'
-                const snapshot = await db.collection("scores")
-                    .where("uid", "==", auth.currentUser.uid)
-                    .where("challengeId", ">=", "ADV-LVL-")
-                    .where("challengeId", "<=", "ADV-LVL-\uf8ff")
-                    .get();
-
-                snapshot.forEach(doc => {
-                    const cid = doc.data().challengeId;
-                    if (cid) completedSet.add(cid);
-                });
-            } catch (e) {
-                console.error("Error fetching adventure progress:", e);
-            }
-        }
+        // Auth Check & Fetch (handled by updateAdventureProgress now)
 
         this.dom.adventureGrid.innerHTML = '';
+        const prefix = this.getAdventurePrefix();
+
         for (let i = 1; i <= 30; i++) {
             const btn = document.createElement('button');
-            const levelId = `ADV-LVL-${i}`;
+            const levelId = `${prefix}LVL-${i}`;
 
             // Determine difficulty
             let diffClass = 'adv-easy';
@@ -1826,17 +1808,30 @@ class SudokuGame {
             btn.className = `level-circle-btn ${diffClass}`;
             btn.textContent = i;
 
-            if (completedSet.has(levelId)) {
-                btn.classList.add('completed');
-            }
+            // Completion check is now done purely by updateAdventureProgress() at the end
+            // This avoids race conditions and duplicate logic
 
             btn.onclick = () => {
+                // Note: completed class is added by updateAdventureProgress
+                if (btn.classList.contains('completed')) {
+                    // Prevent replay logic handled by the event override in updateAdventureProgress
+                    // But as a fallback:
+                    Swal.fire({
+                        title: '¡Nivel Completado!',
+                        text: 'Ya has superado este nivel este mes.',
+                        icon: 'success',
+                        confirmButtonText: 'Genial'
+                    });
+                    return;
+                }
+
                 this.dom.adventureModal.classList.add('hidden');
-                // Set difficulty and start game with levelId as seed and challengeCode
+                // Set difficulty and start game
                 this.difficulty = diff;
                 if (this.dom.difficultySelect) this.dom.difficultySelect.value = diff;
+
                 this.startNewGame(levelId, levelId);
-                this.showGame(); // Start game view
+                this.showGame(); // View Switch
             };
 
             this.dom.adventureGrid.appendChild(btn);
@@ -1849,7 +1844,8 @@ class SudokuGame {
 
         try {
             console.log("Checking Adventure Progress...");
-            // Simplified query to avoid Index issues: Fetch all scores for user
+            const prefix = this.getAdventurePrefix();
+            // Simplified query: Fetch all scores for user
             const snapshot = await db.collection("scores")
                 .where("uid", "==", auth.currentUser.uid)
                 .get();
@@ -1857,17 +1853,17 @@ class SudokuGame {
             const completedSet = new Set();
             snapshot.forEach(doc => {
                 const data = doc.data();
-                if (data.challengeId && data.challengeId.startsWith('ADV-LVL-')) {
+                if (data.challengeId && data.challengeId.startsWith(prefix)) {
                     completedSet.add(data.challengeId);
                 }
             });
-            console.log("Adventure Levels Found:", completedSet);
+            console.log(`Adventure Levels Found for ${prefix}:`, completedSet);
 
             if (this.dom.adventureGrid) {
                 const buttons = this.dom.adventureGrid.querySelectorAll('button');
                 buttons.forEach(btn => {
                     const levelNum = parseInt(btn.textContent);
-                    const levelId = `ADV-LVL-${levelNum}`;
+                    const levelId = `${prefix}LVL-${levelNum}`;
 
                     if (completedSet.has(levelId)) {
                         if (!btn.classList.contains('completed')) {
