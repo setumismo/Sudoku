@@ -213,6 +213,7 @@ class SudokuGame {
             tabBtns: document.querySelectorAll('.tab-btn'),
 
             // Footer Elements
+            btnNewGameBig: document.getElementById('btn-new-game-big'),
         };
         this.setupEventListeners();
         this.loadTheme();
@@ -1635,7 +1636,7 @@ class SudokuGame {
             const y = d.getFullYear();
             const m = (d.getMonth() + 1).toString().padStart(2, '0');
             const day = d.getDate().toString().padStart(2, '0');
-            return `DAILY-${diff}-${y}-${m}-${day}`;
+            return `DAILY-${y}-${m}-${day}-${diff.toUpperCase()}`;
         });
     }
 
