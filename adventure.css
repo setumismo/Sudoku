@@ -23,7 +23,7 @@
 }
 
 .adventure-content {
-    background: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(20px);
     width: 90%;
     max-width: 500px;
