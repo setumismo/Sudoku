@@ -290,9 +290,10 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 0.6rem;
+    font-size: 0.7rem;
     color: var(--note-color);
     font-weight: 600;
+    padding-left: 2px;
 }
 
 /* Controls */
