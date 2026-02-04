@@ -1869,6 +1869,8 @@ showLeaderboard(defaultDiff = null) {
     this.renderLeaderboardScores(diff);
 }
 
+}
+
     async renderLeaderboardScores(difficulty, weekOffset = 0) {
     this.currentLeaderboardDiff = difficulty; // Store for reload
 
@@ -2438,11 +2440,8 @@ getWeeklyChallengeIds(difficulty) {
         container.appendChild(btn);
     }
 }
-}
-
 // Start the game (Wait for DOM/Load)
 window.addEventListener('load', () => {
-    // Check if offline/persistence error happened first? No matter.
     console.log("App Loaded. Initializing Game...");
     window.gameInstance = new SudokuGame();
 
