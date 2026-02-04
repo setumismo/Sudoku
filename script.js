@@ -1849,17 +1849,19 @@ class SudokuGame {
 
         try {
             console.log("Checking Adventure Progress...");
+            // Simplified query to avoid Index issues: Fetch all scores for user
             const snapshot = await db.collection("scores")
                 .where("uid", "==", auth.currentUser.uid)
-                .where("challengeId", ">=", "ADV-LVL-")
-                .where("challengeId", "<=", "ADV-LVL-\uf8ff")
                 .get();
 
             const completedSet = new Set();
             snapshot.forEach(doc => {
                 const data = doc.data();
-                if (data.challengeId) completedSet.add(data.challengeId);
+                if (data.challengeId && data.challengeId.startsWith('ADV-LVL-')) {
+                    completedSet.add(data.challengeId);
+                }
             });
+            console.log("Adventure Levels Found:", completedSet);
 
             if (this.dom.adventureGrid) {
                 const buttons = this.dom.adventureGrid.querySelectorAll('button');
