@@ -1867,458 +1867,458 @@ class SudokuGame {
             this.dom.adventureGrid.appendChild(btn);
         }
     }
-}
 
-showLeaderboard(defaultDiff = null) {
-    this.dom.leaderboardModal.classList.remove('hidden');
-    const diff = defaultDiff || this.difficulty;
-    this.dom.tabBtns.forEach(btn => {
-        if (btn.dataset.diff === diff) btn.classList.add('active');
-        else btn.classList.remove('active');
-    });
-    this.renderLeaderboardScores(diff);
-}
+
+    showLeaderboard(defaultDiff = null) {
+        this.dom.leaderboardModal.classList.remove('hidden');
+        const diff = defaultDiff || this.difficulty;
+        this.dom.tabBtns.forEach(btn => {
+            if (btn.dataset.diff === diff) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        this.renderLeaderboardScores(diff);
+    }
 
     async renderLeaderboardScores(difficulty, weekOffset = 0) {
-    this.currentLeaderboardDiff = difficulty; // Store for reload
+        this.currentLeaderboardDiff = difficulty; // Store for reload
 
-    // Toggle Period Selector (Only for Weekly Cup)
-    const periodSelect = document.getElementById('leaderboard-week-select');
-    const isWeekly = difficulty.includes('DAILY');
-    if (periodSelect) {
-        periodSelect.style.display = isWeekly ? 'block' : 'none';
-    }
-
-    this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Cargando...</div>';
-
-    try {
-        if (!db) throw new Error("Database not initialized");
-
-        let query = db.collection("scores").where("difficulty", "==", difficulty);
-
-        // Only filter by Week if it's a Weekly/Daily Cup. free-play should be all-time.
-        // isWeekly already defined above
-
-        if (isWeekly) {
-            // Calculate Target Week ID
-            const targetDate = new Date();
-            targetDate.setDate(targetDate.getDate() - (weekOffset * 7));
-            const targetWeekId = this.getWeekId(targetDate);
-            console.log(`Fetching scores for difficulty: ${difficulty}, week: ${targetWeekId}`);
-            query = query.where("weekId", "==", targetWeekId);
-        } else {
-            console.log(`Fetching Global Free Play scores for difficulty: ${difficulty}`);
+        // Toggle Period Selector (Only for Weekly Cup)
+        const periodSelect = document.getElementById('leaderboard-week-select');
+        const isWeekly = difficulty.includes('DAILY');
+        if (periodSelect) {
+            periodSelect.style.display = isWeekly ? 'block' : 'none';
         }
 
-        // Fetch all scores for this difficulty (Client-side sort to avoid complex index needs)
-        const querySnapshot = await query.get();
+        this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Cargando...</div>';
 
-        let list = [];
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            list.push({
-                name: data.name,
-                seconds: data.seconds,
-                timeStr: data.timeStr,
-                difficulty: data.difficulty,
-                date: data.date
+        try {
+            if (!db) throw new Error("Database not initialized");
+
+            let query = db.collection("scores").where("difficulty", "==", difficulty);
+
+            // Only filter by Week if it's a Weekly/Daily Cup. free-play should be all-time.
+            // isWeekly already defined above
+
+            if (isWeekly) {
+                // Calculate Target Week ID
+                const targetDate = new Date();
+                targetDate.setDate(targetDate.getDate() - (weekOffset * 7));
+                const targetWeekId = this.getWeekId(targetDate);
+                console.log(`Fetching scores for difficulty: ${difficulty}, week: ${targetWeekId}`);
+                query = query.where("weekId", "==", targetWeekId);
+            } else {
+                console.log(`Fetching Global Free Play scores for difficulty: ${difficulty}`);
+            }
+
+            // Fetch all scores for this difficulty (Client-side sort to avoid complex index needs)
+            const querySnapshot = await query.get();
+
+            let list = [];
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                list.push({
+                    name: data.name,
+                    seconds: data.seconds,
+                    timeStr: data.timeStr,
+                    difficulty: data.difficulty,
+                    date: data.date
+                });
             });
-        });
 
-        list.sort((a, b) => a.seconds - b.seconds);
-        list = list.slice(0, 20);
-        this.updateLeaderboardUI(list);
+            list.sort((a, b) => a.seconds - b.seconds);
+            list = list.slice(0, 20);
+            this.updateLeaderboardUI(list);
 
-    } catch (error) {
-        console.error("Error fetching global scores:", error);
-        this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Offline - Mostrando récords locales</div>';
+        } catch (error) {
+            console.error("Error fetching global scores:", error);
+            this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">Offline - Mostrando récords locales</div>';
 
-        const scores = JSON.parse(localStorage.getItem('sudokuResults')) || {};
-        const localList = scores[difficulty] || [];
-        this.updateLeaderboardUI(localList);
-    }
-}
-
-updateLeaderboardUI(list) {
-    this.dom.leaderboardList.innerHTML = '';
-    if (list.length === 0) {
-        this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">No hay puntuaciones aún.</div>';
-        return;
+            const scores = JSON.parse(localStorage.getItem('sudokuResults')) || {};
+            const localList = scores[difficulty] || [];
+            this.updateLeaderboardUI(localList);
+        }
     }
 
-    list.forEach((score, index) => {
-        const row = document.createElement('div');
-        row.className = 'score-row';
-        const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
-        const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
-        let dateStr = '';
-        if (score.date) {
-            const d = new Date(score.date);
-            dateStr = `<span class="player-date">${d.toLocaleDateString()}</span>`;
+    updateLeaderboardUI(list) {
+        this.dom.leaderboardList.innerHTML = '';
+        if (list.length === 0) {
+            this.dom.leaderboardList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary)">No hay puntuaciones aún.</div>';
+            return;
         }
 
-        row.innerHTML = `
+        list.forEach((score, index) => {
+            const row = document.createElement('div');
+            row.className = 'score-row';
+            const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
+            const rankIcon = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+            let dateStr = '';
+            if (score.date) {
+                const d = new Date(score.date);
+                dateStr = `<span class="player-date">${d.toLocaleDateString()}</span>`;
+            }
+
+            row.innerHTML = `
                 <span class="rank ${rankClass}">${rankIcon}</span>
                 <span class="player-name">${score.name}</span>
                 <span class="player-time" style="flex-grow:0; margin-left:10px;">${score.timeStr}</span>
                 ${dateStr}
             `;
-        this.dom.leaderboardList.appendChild(row);
-    });
-}
+            this.dom.leaderboardList.appendChild(row);
+        });
+    }
 
-startTimer() {
-    this.stopTimer();
-    this.updateTimerDisplay();
-    this.timerInterval = setInterval(() => {
-        this.timer++;
+    startTimer() {
+        this.stopTimer();
         this.updateTimerDisplay();
-    }, 1000);
-}
+        this.timerInterval = setInterval(() => {
+            this.timer++;
+            this.updateTimerDisplay();
+        }, 1000);
+    }
 
-stopTimer() {
-    if (this.timerInterval) clearInterval(this.timerInterval);
-}
+    stopTimer() {
+        if (this.timerInterval) clearInterval(this.timerInterval);
+    }
 
-resetTimer() {
-    this.stopTimer();
-    this.timer = 0;
-    this.updateTimerDisplay();
-}
+    resetTimer() {
+        this.stopTimer();
+        this.timer = 0;
+        this.updateTimerDisplay();
+    }
 
-updateTimerDisplay() {
-    const min = Math.floor(this.timer / 60).toString().padStart(2, '0');
-    const sec = (this.timer % 60).toString().padStart(2, '0');
-    this.dom.timer.textContent = `${min}:${sec}`;
-}
+    updateTimerDisplay() {
+        const min = Math.floor(this.timer / 60).toString().padStart(2, '0');
+        const sec = (this.timer % 60).toString().padStart(2, '0');
+        this.dom.timer.textContent = `${min}:${sec}`;
+    }
 
     // --- CHALLENGE LOGIC ---
 
     async handleCreateChallenge() {
-    // 1. Ask Difficulty
-    let selectedDiff = 'medium';
+        // 1. Ask Difficulty
+        let selectedDiff = 'medium';
 
-    const { value: finalDiff } = await Swal.fire({
-        title: 'Crear Reto Fantasma',
-        html: `
+        const { value: finalDiff } = await Swal.fire({
+            title: 'Crear Reto Fantasma',
+            html: `
                 <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
                     <button id="swal-diff-easy" class="swal-diff-btn" style="border: 2px solid #48bb78; color: #48bb78; background: white; padding: 12px; border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: all 0.2s;">Fácil</button>
                     <button id="swal-diff-medium" class="swal-diff-btn" style="border: 2px solid #ecc94b; color: #ecc94b; background: white; padding: 12px; border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: all 0.2s;">Medio</button>
                     <button id="swal-diff-hard" class="swal-diff-btn" style="border: 2px solid #f56565; color: #f56565; background: white; padding: 12px; border-radius: 10px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: all 0.2s;">Difícil</button>
                 </div>
             `,
-        showCancelButton: true,
-        confirmButtonText: 'Generar Código',
-        confirmButtonColor: '#4c6ef5',
-        cancelButtonText: 'Cancelar',
-        didOpen: () => {
-            const popup = Swal.getPopup();
-            const btns = {
-                easy: popup.querySelector('#swal-diff-easy'),
-                medium: popup.querySelector('#swal-diff-medium'),
-                hard: popup.querySelector('#swal-diff-hard')
-            };
+            showCancelButton: true,
+            confirmButtonText: 'Generar Código',
+            confirmButtonColor: '#4c6ef5',
+            cancelButtonText: 'Cancelar',
+            didOpen: () => {
+                const popup = Swal.getPopup();
+                const btns = {
+                    easy: popup.querySelector('#swal-diff-easy'),
+                    medium: popup.querySelector('#swal-diff-medium'),
+                    hard: popup.querySelector('#swal-diff-hard')
+                };
 
-            const updateSelection = (diff) => {
-                selectedDiff = diff;
-                // Reset styles
-                Object.values(btns).forEach(btn => {
-                    btn.style.background = 'white';
-                    btn.style.color = btn.style.borderColor;
-                    btn.style.transform = 'scale(1)';
-                });
-                // Highlight selected
-                const active = btns[diff];
-                active.style.background = active.style.borderColor;
-                active.style.color = 'white';
-                active.style.transform = 'scale(1.02)';
-            };
+                const updateSelection = (diff) => {
+                    selectedDiff = diff;
+                    // Reset styles
+                    Object.values(btns).forEach(btn => {
+                        btn.style.background = 'white';
+                        btn.style.color = btn.style.borderColor;
+                        btn.style.transform = 'scale(1)';
+                    });
+                    // Highlight selected
+                    const active = btns[diff];
+                    active.style.background = active.style.borderColor;
+                    active.style.color = 'white';
+                    active.style.transform = 'scale(1.02)';
+                };
 
-            // Initial selection
-            updateSelection('medium');
+                // Initial selection
+                updateSelection('medium');
 
-            // Click listeners
-            btns.easy.onclick = () => updateSelection('easy');
-            btns.medium.onclick = () => updateSelection('medium');
-            btns.hard.onclick = () => updateSelection('hard');
-        },
-        preConfirm: () => {
-            return selectedDiff;
-        }
-    });
-
-    if (!finalDiff) return;
-
-    // 2. Generate Code & Seed
-    const code = this.generateChallengeCode();
-    const seed = Math.random().toString(36).substring(2, 15);
-    const userId = (firebase.auth().currentUser && firebase.auth().currentUser.uid) || 'anon';
-
-    Swal.fire({
-        title: 'Generando Reto...',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
-    });
-
-    try {
-        // 3. Save to Firestore
-        await db.collection('challenges').doc(code).set({
-            code: code,
-            seed: seed,
-            difficulty: finalDiff,
-            createdBy: userId,
-            createdByNick: this.currentUserNick || 'Anónimo', // Ensure fallback
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                // Click listeners
+                btns.easy.onclick = () => updateSelection('easy');
+                btns.medium.onclick = () => updateSelection('medium');
+                btns.hard.onclick = () => updateSelection('hard');
+            },
+            preConfirm: () => {
+                return selectedDiff;
+            }
         });
 
-        // 4. Show Code
+        if (!finalDiff) return;
+
+        // 2. Generate Code & Seed
+        const code = this.generateChallengeCode();
+        const seed = Math.random().toString(36).substring(2, 15);
+        const userId = (firebase.auth().currentUser && firebase.auth().currentUser.uid) || 'anon';
+
         Swal.fire({
-            title: '¡Reto Creado!',
-            html: `
-                    <p style="margin-bottom:10px;">Comparte este código:</p>
-                    <div style="background:#f0f2f5; padding:15px; border-radius:10px; font-size:2rem; font-weight:800; letter-spacing:5px; color:#4c6ef5; border: 2px dashed #4c6ef5;">
-                        ${code}
-                    </div>
-                `,
-            icon: 'success',
-            confirmButtonText: 'Empezar Partida',
-            footer: 'Tu amigo jugará el mismo tablero.'
-        }).then(() => {
-            this.difficulty = finalDiff;
-            this.startNewGame(seed, code);
-            this.showGame();
-        });
-
-    } catch (error) {
-        console.error(error);
-        Swal.fire('Error', 'No se pudo crear el reto. Inténtalo de nuevo.', 'error');
-    }
-}
-
-    async handleJoinChallenge() {
-    const { value: code } = await Swal.fire({
-        title: 'Unirse a Reto',
-        input: 'text',
-        inputLabel: 'Introduce el Código',
-        inputPlaceholder: 'Ej: X9P2',
-        showCancelButton: true,
-        confirmButtonText: 'Buscar y Jugar',
-        confirmButtonColor: '#4c6ef5',
-        inputValidator: (value) => {
-            if (!value) return '¡Escribe el código!';
-        }
-    });
-
-    if (code) {
-        Swal.fire({
-            title: 'Buscando...',
+            title: 'Generando Reto...',
             allowOutsideClick: false,
             didOpen: () => Swal.showLoading()
         });
 
         try {
-            const doc = await db.collection('challenges').doc(code.toUpperCase().trim()).get();
-            if (doc.exists) {
-                const data = doc.data();
-                const creatorName = data.createdByNick || 'un Jugador Anónimo';
+            // 3. Save to Firestore
+            await db.collection('challenges').doc(code).set({
+                code: code,
+                seed: seed,
+                difficulty: finalDiff,
+                createdBy: userId,
+                createdByNick: this.currentUserNick || 'Anónimo', // Ensure fallback
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
 
-                // LOBBY STEP: Show found challenge details and wait for confirmation
-                Swal.fire({
-                    title: '¡Partida Encontrada!',
-                    html: `
+            // 4. Show Code
+            Swal.fire({
+                title: '¡Reto Creado!',
+                html: `
+                    <p style="margin-bottom:10px;">Comparte este código:</p>
+                    <div style="background:#f0f2f5; padding:15px; border-radius:10px; font-size:2rem; font-weight:800; letter-spacing:5px; color:#4c6ef5; border: 2px dashed #4c6ef5;">
+                        ${code}
+                    </div>
+                `,
+                icon: 'success',
+                confirmButtonText: 'Empezar Partida',
+                footer: 'Tu amigo jugará el mismo tablero.'
+            }).then(() => {
+                this.difficulty = finalDiff;
+                this.startNewGame(seed, code);
+                this.showGame();
+            });
+
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'No se pudo crear el reto. Inténtalo de nuevo.', 'error');
+        }
+    }
+
+    async handleJoinChallenge() {
+        const { value: code } = await Swal.fire({
+            title: 'Unirse a Reto',
+            input: 'text',
+            inputLabel: 'Introduce el Código',
+            inputPlaceholder: 'Ej: X9P2',
+            showCancelButton: true,
+            confirmButtonText: 'Buscar y Jugar',
+            confirmButtonColor: '#4c6ef5',
+            inputValidator: (value) => {
+                if (!value) return '¡Escribe el código!';
+            }
+        });
+
+        if (code) {
+            Swal.fire({
+                title: 'Buscando...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const doc = await db.collection('challenges').doc(code.toUpperCase().trim()).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    const creatorName = data.createdByNick || 'un Jugador Anónimo';
+
+                    // LOBBY STEP: Show found challenge details and wait for confirmation
+                    Swal.fire({
+                        title: '¡Partida Encontrada!',
+                        html: `
                             <p style="font-size: 1.1em; color: #4a5568;">Te unes al reto de <b>${creatorName}</b></p>
                             <div style="margin-top: 15px; font-weight: bold; color: #2d3748;">
                                 Dificultad: <span style="color:#4c6ef5">${data.difficulty.toUpperCase()}</span>
                             </div>
                         `,
-                    icon: 'success',
-                    showCancelButton: true,
-                    confirmButtonText: '¡JUGAR AHORA!',
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#48bb78', // Green for go
-                    cancelButtonColor: '#e53e3e',
-                    reverseButtons: true
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.difficulty = data.difficulty;
-                        this.startNewGame(data.seed, code.toUpperCase().trim());
-                        this.showGame();
-                    }
-                });
-            } else {
-                Swal.fire('Error', 'Código inválido o no existe.', 'error');
+                        icon: 'success',
+                        showCancelButton: true,
+                        confirmButtonText: '¡JUGAR AHORA!',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#48bb78', // Green for go
+                        cancelButtonColor: '#e53e3e',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.difficulty = data.difficulty;
+                            this.startNewGame(data.seed, code.toUpperCase().trim());
+                            this.showGame();
+                        }
+                    });
+                } else {
+                    Swal.fire('Error', 'Código inválido o no existe.', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Error', 'Fallo de conexión.', 'error');
             }
-        } catch (error) {
-            console.error(error);
-            Swal.fire('Error', 'Fallo de conexión.', 'error');
         }
     }
-}
 
-generateChallengeCode() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let result = '';
-    for (let i = 0; i < 4; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    generateChallengeCode() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let result = '';
+        for (let i = 0; i < 4; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
     }
-    return result;
-}
 
     // --- CHALLENGE LEADERBOARD METHODS ---
 
     async registerParticipant() {
-    if (!this.currentChallengeCode || !this.currentUserNick) return;
-    try {
-        const docRef = await db.collection('scores').add({
-            challengeId: this.currentChallengeCode,
-            nick: this.currentUserNick,
-            uid: (auth.currentUser ? auth.currentUser.uid : null), // Fix: Save UID for daily check
-            status: 'playing',
-            time: null,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        this.currentScoreId = docRef.id;
-        console.log("Participant registered:", this.currentScoreId);
-    } catch (e) {
-        console.error("Error registering participant:", e);
-    }
-}
-
-    async updateChallengeScore() {
-    if (!this.currentScoreId) return;
-    try {
-        await db.collection('scores').doc(this.currentScoreId).update({
-            status: 'finished',
-            time: this.timer,
-            seconds: this.timer, // Mirror for index compatibility
-            timeStr: this.dom.timer.textContent,
-            finishedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        this.showChallengeLeaderboard();
-    } catch (e) {
-        console.error("Error updating challenge score:", e);
-        Swal.fire('Error', 'No se pudo guardar la puntuación', 'error');
-    }
-}
-
-    async checkWin() {
-    const isFull = this.board.every(cell => cell.value !== null);
-    const noErrors = this.board.every(cell => !cell.error);
-
-    if (isFull && noErrors) {
-        this.isGameOver = true;
-        this.stopTimer();
-        this.soundManager.playWin();
-
-        if (this.currentChallengeCode) {
-            // CHALLENGE WIN FLOW
-            // Await save to prevent race condition
-            await this.updateChallengeScore();
-        } else {
-            // VISUAL STUDIO CODE STANDARD FLOW
-            this.dom.finalTime.textContent = this.dom.timer.textContent;
-            this.dom.victoryModal.classList.remove('hidden');
+        if (!this.currentChallengeCode || !this.currentUserNick) return;
+        try {
+            const docRef = await db.collection('scores').add({
+                challengeId: this.currentChallengeCode,
+                nick: this.currentUserNick,
+                uid: (auth.currentUser ? auth.currentUser.uid : null), // Fix: Save UID for daily check
+                status: 'playing',
+                time: null,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            this.currentScoreId = docRef.id;
+            console.log("Participant registered:", this.currentScoreId);
+        } catch (e) {
+            console.error("Error registering participant:", e);
         }
     }
-}
+
+    async updateChallengeScore() {
+        if (!this.currentScoreId) return;
+        try {
+            await db.collection('scores').doc(this.currentScoreId).update({
+                status: 'finished',
+                time: this.timer,
+                seconds: this.timer, // Mirror for index compatibility
+                timeStr: this.dom.timer.textContent,
+                finishedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            this.showChallengeLeaderboard();
+        } catch (e) {
+            console.error("Error updating challenge score:", e);
+            Swal.fire('Error', 'No se pudo guardar la puntuación', 'error');
+        }
+    }
+
+    async checkWin() {
+        const isFull = this.board.every(cell => cell.value !== null);
+        const noErrors = this.board.every(cell => !cell.error);
+
+        if (isFull && noErrors) {
+            this.isGameOver = true;
+            this.stopTimer();
+            this.soundManager.playWin();
+
+            if (this.currentChallengeCode) {
+                // CHALLENGE WIN FLOW
+                // Await save to prevent race condition
+                await this.updateChallengeScore();
+            } else {
+                // VISUAL STUDIO CODE STANDARD FLOW
+                this.dom.finalTime.textContent = this.dom.timer.textContent;
+                this.dom.victoryModal.classList.remove('hidden');
+            }
+        }
+    }
 
     // ...
 
     async showChallengeLeaderboard(codeArg = null) {
-    const targetCode = codeArg || this.currentChallengeCode;
-    if (!targetCode) return;
+        const targetCode = codeArg || this.currentChallengeCode;
+        if (!targetCode) return;
 
-    const fetchAndRender = async () => {
-        try {
-            const snapshot = await db.collection('scores')
-                .where('challengeId', '==', targetCode)
-                .where('status', '==', 'finished')
-                .orderBy('seconds', 'asc')
-                .limit(50)
-                .get();
+        const fetchAndRender = async () => {
+            try {
+                const snapshot = await db.collection('scores')
+                    .where('challengeId', '==', targetCode)
+                    .where('status', '==', 'finished')
+                    .orderBy('seconds', 'asc')
+                    .limit(50)
+                    .get();
 
-            if (snapshot.empty) {
-                return '<div style="text-align:center; padding:20px; color:#aaa;">Nadie ha terminado aún.</div>';
-            }
+                if (snapshot.empty) {
+                    return '<div style="text-align:center; padding:20px; color:#aaa;">Nadie ha terminado aún.</div>';
+                }
 
-            let html = '<div style="display:flex; flex-direction:column; gap:15px; text-align:left;">';
-            html += `<div><h3 style="color:#38a169; border-bottom:2px solid #38a169; padding-bottom:5px; margin-bottom:10px;">🏆 Clasificación (${targetCode})</h3>`;
+                let html = '<div style="display:flex; flex-direction:column; gap:15px; text-align:left;">';
+                html += `<div><h3 style="color:#38a169; border-bottom:2px solid #38a169; padding-bottom:5px; margin-bottom:10px;">🏆 Clasificación (${targetCode})</h3>`;
 
-            snapshot.docs.forEach((doc, i) => {
-                const p = doc.data();
-                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
-                html += `
+                snapshot.docs.forEach((doc, i) => {
+                    const p = doc.data();
+                    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+                    html += `
                         <div style="display:flex; justify-content:space-between; padding:8px; background:#f7fafc; margin-bottom:5px; border-radius:8px; align-items:center;">
                             <div><span style="font-size:1.2em; margin-right:8px;">${medal}</span> <b>${p.nick}</b></div>
                             <span style="font-family:monospace; font-weight:bold; color:#4c6ef5;">${p.timeStr || '--:--'}</span>
                         </div>`;
-            });
+                });
 
-            html += '</div></div>';
-            return html;
+                html += '</div></div>';
+                return html;
 
-        } catch (e) {
-            console.error("Leaderboard Error:", e);
-            return '<p style="color:red; text-align:center;">Error cargando ranking.</p>';
-        }
-    };
-
-    const htmlContent = await fetchAndRender();
-
-    Swal.fire({
-        title: '📊 Clasificación',
-        html: htmlContent,
-        showDenyButton: true,
-        confirmButtonText: '🔄 Actualizar',
-        denyButtonText: 'Cerrar',
-        confirmButtonColor: '#4c6ef5',
-        denyButtonColor: '#718096',
-        allowOutsideClick: false,
-    }).then((result) => {
-        if (result.isConfirmed) {
-            this.showChallengeLeaderboard(targetCode);
-        } else if (result.isDenied) {
-            if (!codeArg && this.currentChallengeCode && this.currentChallengeCode.startsWith('DAILY-')) {
-                this.showHome();
-            } else if (!codeArg) {
-                this.showHome();
+            } catch (e) {
+                console.error("Leaderboard Error:", e);
+                return '<p style="color:red; text-align:center;">Error cargando ranking.</p>';
             }
-        }
-    });
-}
+        };
+
+        const htmlContent = await fetchAndRender();
+
+        Swal.fire({
+            title: '📊 Clasificación',
+            html: htmlContent,
+            showDenyButton: true,
+            confirmButtonText: '🔄 Actualizar',
+            denyButtonText: 'Cerrar',
+            confirmButtonColor: '#4c6ef5',
+            denyButtonColor: '#718096',
+            allowOutsideClick: false,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.showChallengeLeaderboard(targetCode);
+            } else if (result.isDenied) {
+                if (!codeArg && this.currentChallengeCode && this.currentChallengeCode.startsWith('DAILY-')) {
+                    this.showHome();
+                } else if (!codeArg) {
+                    this.showHome();
+                }
+            }
+        });
+    }
 
     async showChallengeExplorer() {
-    Swal.fire({
-        title: '📜 Últimos Retos',
-        html: '<div id="explorer-list" style="max-height:400px; overflow-y:auto; text-align:left;"><p style="text-align:center">Cargando...</p></div>',
-        showCloseButton: true,
-        showConfirmButton: false,
-        didOpen: async () => {
-            const container = document.getElementById('explorer-list');
-            try {
-                const snapshot = await db.collection('challenges')
-                    .orderBy('createdAt', 'desc')
-                    .limit(10)
-                    .get();
+        Swal.fire({
+            title: '📜 Últimos Retos',
+            html: '<div id="explorer-list" style="max-height:400px; overflow-y:auto; text-align:left;"><p style="text-align:center">Cargando...</p></div>',
+            showCloseButton: true,
+            showConfirmButton: false,
+            didOpen: async () => {
+                const container = document.getElementById('explorer-list');
+                try {
+                    const snapshot = await db.collection('challenges')
+                        .orderBy('createdAt', 'desc')
+                        .limit(10)
+                        .get();
 
-                if (snapshot.empty) {
-                    container.innerHTML = '<p style="text-align:center; color:#aaa">No hay retos recientes.</p>';
-                    return;
-                }
-
-                let html = '';
-                snapshot.forEach(doc => {
-                    const c = doc.data();
-                    let timeAgo = '';
-                    if (c.createdAt) {
-                        const date = c.createdAt.toDate();
-                        timeAgo = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    if (snapshot.empty) {
+                        container.innerHTML = '<p style="text-align:center; color:#aaa">No hay retos recientes.</p>';
+                        return;
                     }
 
-                    const diffColor = c.difficulty === 'easy' ? '#48bb78' : c.difficulty === 'medium' ? '#ecc94b' : '#f56565';
-                    const diffName = c.difficulty === 'easy' ? 'Fácil' : c.difficulty === 'medium' ? 'Medio' : 'Difícil';
+                    let html = '';
+                    snapshot.forEach(doc => {
+                        const c = doc.data();
+                        let timeAgo = '';
+                        if (c.createdAt) {
+                            const date = c.createdAt.toDate();
+                            timeAgo = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        }
 
-                    html += `
+                        const diffColor = c.difficulty === 'easy' ? '#48bb78' : c.difficulty === 'medium' ? '#ecc94b' : '#f56565';
+                        const diffName = c.difficulty === 'easy' ? 'Fácil' : c.difficulty === 'medium' ? 'Medio' : 'Difícil';
+
+                        html += `
                              <div style="background:#fff; border:1px solid #eee; border-radius:10px; padding:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
                                  <div>
                                      <div style="font-weight:bold; font-size:1.1em; color:#2d3748;">
@@ -2335,119 +2335,119 @@ generateChallengeCode() {
                                  </div>
                              </div>
                          `;
-                });
-                container.innerHTML = html;
+                    });
+                    container.innerHTML = html;
 
-            } catch (e) {
-                console.error("Explorer error:", e);
-                container.innerHTML = '<p style="color:red; text-align:center">Error cargando lista.</p>';
+                } catch (e) {
+                    console.error("Explorer error:", e);
+                    container.innerHTML = '<p style="color:red; text-align:center">Error cargando lista.</p>';
+                }
             }
-        }
-    });
-}
-
-startChallengeFromExplorer(code, seed, diff) {
-    Swal.close();
-    this.difficulty = diff;
-    this.startNewGame(seed, code);
-    this.showGame();
-}
-
-
-
-
-getDailySeed(difficulty) {
-    const d = new Date();
-    // Usar UTC para garantizar que todos en el mundo tengan el mismo reto al mismo tiempo
-    const year = d.getUTCFullYear();
-    const month = (d.getUTCMonth() + 1).toString().padStart(2, '0');
-    const day = d.getUTCDate().toString().padStart(2, '0');
-    return `DAILY-${year}-${month}-${day}-${difficulty.toUpperCase()}`;
-}
-
-getDatesSinceMonday() {
-    const d = new Date();
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day == 0 ? -6 : 1); // adjust when day is sunday
-    const monday = new Date(d.setDate(diff));
-
-    const dates = [];
-    const today = new Date();
-    // Reset hours to compare safely
-    today.setHours(0, 0, 0, 0);
-    monday.setHours(0, 0, 0, 0);
-
-    let current = new Date(monday);
-    while (current <= today) {
-        dates.push(new Date(current));
-        current.setDate(current.getDate() + 1);
+        });
     }
-    return dates;
-}
 
-getWeeklyChallengeIds(difficulty) {
-    const dates = this.getDatesSinceMonday();
-    return dates.map(d => {
-        const year = d.getFullYear();
-        const month = (d.getMonth() + 1).toString().padStart(2, '0');
-        const day = d.getDate().toString().padStart(2, '0');
+    startChallengeFromExplorer(code, seed, diff) {
+        Swal.close();
+        this.difficulty = diff;
+        this.startNewGame(seed, code);
+        this.showGame();
+    }
+
+
+
+
+    getDailySeed(difficulty) {
+        const d = new Date();
+        // Usar UTC para garantizar que todos en el mundo tengan el mismo reto al mismo tiempo
+        const year = d.getUTCFullYear();
+        const month = (d.getUTCMonth() + 1).toString().padStart(2, '0');
+        const day = d.getUTCDate().toString().padStart(2, '0');
         return `DAILY-${year}-${month}-${day}-${difficulty.toUpperCase()}`;
-    });
-}
+    }
+
+    getDatesSinceMonday() {
+        const d = new Date();
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day == 0 ? -6 : 1); // adjust when day is sunday
+        const monday = new Date(d.setDate(diff));
+
+        const dates = [];
+        const today = new Date();
+        // Reset hours to compare safely
+        today.setHours(0, 0, 0, 0);
+        monday.setHours(0, 0, 0, 0);
+
+        let current = new Date(monday);
+        while (current <= today) {
+            dates.push(new Date(current));
+            current.setDate(current.getDate() + 1);
+        }
+        return dates;
+    }
+
+    getWeeklyChallengeIds(difficulty) {
+        const dates = this.getDatesSinceMonday();
+        return dates.map(d => {
+            const year = d.getFullYear();
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            const day = d.getDate().toString().padStart(2, '0');
+            return `DAILY-${year}-${month}-${day}-${difficulty.toUpperCase()}`;
+        });
+    }
 
     // --- LEVEL COMPLETION LOGIC ---
 
     async renderChallengeGrid(difficulty) {
-    this.currentDifficulty = difficulty;
-    const container = document.getElementById('challenge-grid-container');
-    if (!container) return;
+        this.currentDifficulty = difficulty;
+        const container = document.getElementById('challenge-grid-container');
+        if (!container) return;
 
-    container.innerHTML = 'Cargando...';
+        container.innerHTML = 'Cargando...';
 
-    // 1. Obtener completados
-    const completedSet = new Set();
-    if (this.currentUserNick && auth.currentUser) {
-        try {
-            // Assuming challengeId is CHALLENGE-DIFFICULTY-NUM
-            const snapshot = await db.collection('scores')
-                .where('uid', '==', auth.currentUser.uid)
-                .where('difficulty', '==', difficulty)
-                .where('challengeId', '>=', 'CHALLENGE-' + difficulty.toUpperCase())
-                .get();
-            snapshot.docs.forEach(doc => {
-                const data = doc.data();
-                if (data.challengeId) completedSet.add(data.challengeId);
-            });
-        } catch (e) {
-            console.error("Error fetching completed", e);
-        }
-    }
-
-    container.innerHTML = '';
-
-    // 2. Generar Botones
-    for (let i = 1; i <= 50; i++) {
-        const btn = document.createElement('button');
-        btn.textContent = i;
-        btn.className = 'level-btn'; // Clase base
-
-        // ID del reto (Debe coincidir con como lo guardas)
-        const challengeId = `CHALLENGE-${difficulty.toUpperCase()}-${i}`;
-
-        // 3. Aplicar Check
-        if (completedSet.has(challengeId)) {
-            btn.classList.add('completed');
-            btn.innerHTML += ' <span class="check-mark">✓</span>';
+        // 1. Obtener completados
+        const completedSet = new Set();
+        if (this.currentUserNick && auth.currentUser) {
+            try {
+                // Assuming challengeId is CHALLENGE-DIFFICULTY-NUM
+                const snapshot = await db.collection('scores')
+                    .where('uid', '==', auth.currentUser.uid)
+                    .where('difficulty', '==', difficulty)
+                    .where('challengeId', '>=', 'CHALLENGE-' + difficulty.toUpperCase())
+                    .get();
+                snapshot.docs.forEach(doc => {
+                    const data = doc.data();
+                    if (data.challengeId) completedSet.add(data.challengeId);
+                });
+            } catch (e) {
+                console.error("Error fetching completed", e);
+            }
         }
 
-        btn.onclick = () => {
-            const seed = `SEED-${difficulty.toUpperCase()}-${i}`;
-            this.startNewGame(seed, challengeId);
-            this.showGame();
-        };
-        container.appendChild(btn);
+        container.innerHTML = '';
+
+        // 2. Generar Botones
+        for (let i = 1; i <= 50; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i;
+            btn.className = 'level-btn'; // Clase base
+
+            // ID del reto (Debe coincidir con como lo guardas)
+            const challengeId = `CHALLENGE-${difficulty.toUpperCase()}-${i}`;
+
+            // 3. Aplicar Check
+            if (completedSet.has(challengeId)) {
+                btn.classList.add('completed');
+                btn.innerHTML += ' <span class="check-mark">✓</span>';
+            }
+
+            btn.onclick = () => {
+                const seed = `SEED-${difficulty.toUpperCase()}-${i}`;
+                this.startNewGame(seed, challengeId);
+                this.showGame();
+            };
+            container.appendChild(btn);
+        }
     }
-}
 }
 
 // Start the game (Wait for DOM/Load)
