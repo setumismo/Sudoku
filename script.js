@@ -1843,6 +1843,47 @@ class SudokuGame {
         }
     }
 
+    async updateAdventureProgress() {
+        if (!db || !auth || !auth.currentUser) return;
+
+        try {
+            console.log("Checking Adventure Progress...");
+            const snapshot = await db.collection("scores")
+                .where("uid", "==", auth.currentUser.uid)
+                .where("challengeId", ">=", "ADV-LVL-")
+                .where("challengeId", "<=", "ADV-LVL-\uf8ff")
+                .get();
+
+            const completedSet = new Set();
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.challengeId) completedSet.add(data.challengeId);
+            });
+
+            if (this.dom.adventureGrid) {
+                const buttons = this.dom.adventureGrid.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    const levelNum = parseInt(btn.textContent);
+                    const levelId = `ADV-LVL-${levelNum}`;
+
+                    if (completedSet.has(levelId)) {
+                        if (!btn.classList.contains('completed')) {
+                            btn.classList.add('completed');
+                            btn.title = "Nivel Completado";
+                            // Override click to prevent replay
+                            btn.onclick = (e) => {
+                                e.stopPropagation();
+                                Swal.fire('¡Completado!', 'Nivel ya superado.', 'success');
+                            };
+                        }
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("Error updating adventure progress:", e);
+        }
+    }
+
     showLeaderboard(defaultDiff = null) {
         this.dom.leaderboardModal.classList.remove('hidden');
         const diff = defaultDiff || this.difficulty;
