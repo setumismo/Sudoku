@@ -190,147 +190,158 @@
                                 </button>
                                 <span class="circle-label" style="font-size: 0.75rem;">Difícil</span>
                             </div>
+
+                            <!-- Adventure Mode (Pill) -->
+                            <div class="circle-wrapper" style="width: auto;">
+                                <button id="btn-adventure-mode" class="menu-btn adventure-pill-btn"
+                                    title="Modo Aventura">
+                                    <span style="font-size: 1.5rem;">🏆</span>
+                                </button>
+                                <span class="circle-label" style="font-size: 0.75rem; white-space: nowrap;">MODO
+                                    AVENTURA</span>
+                            </div>
                         </div>
 
-                        <!-- Trophy Button (Kept) -->
-                        <button id="btn-home-leaderboard" class="circle-icon-btn"
-                            style="width: 50px; height: 50px; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); font-size: 1.5rem;">
-                            🏆
-                        </button>
                     </div>
-                </section>
+
+                    <!-- Trophy Button (Kept) -->
+                    <button id="btn-home-leaderboard" class="circle-icon-btn"
+                        style="width: 50px; height: 50px; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); font-size: 1.5rem;">
+                        🏆
+                    </button>
+        </div>
+        </section>
 
 
-                <!-- Floating Settings (Theme/Sound) -->
-                <div class="floating-settings" style="margin-bottom: 25px;">
-                    <button id="theme-toggle-home" class="circle-icon-btn">
-                        <svg viewBox="0 0 24 24" width="24" height="24" class="sun-icon">
-                            <path fill="currentColor"
-                                d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s.45-1 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s.45-1 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z" />
-                        </svg>
-                        <svg viewBox="0 0 24 24" width="24" height="24" class="moon-icon" style="display:none;">
-                            <path fill="currentColor"
-                                d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z" />
-                        </svg>
-                    </button>
-                    <button id="sound-toggle-home" class="circle-icon-btn">
-                        <span id="sound-icon-display">🔊</span>
-                    </button>
-                </div>
-            </main>
+        <!-- Floating Settings (Theme/Sound) -->
+        <div class="floating-settings" style="margin-bottom: 25px;">
+            <button id="theme-toggle-home" class="circle-icon-btn">
+                <svg viewBox="0 0 24 24" width="24" height="24" class="sun-icon">
+                    <path fill="currentColor"
+                        d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s.45-1 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s.45-1 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z" />
+                </svg>
+                <svg viewBox="0 0 24 24" width="24" height="24" class="moon-icon" style="display:none;">
+                    <path fill="currentColor"
+                        d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z" />
+                </svg>
+            </button>
+            <button id="sound-toggle-home" class="circle-icon-btn">
+                <span id="sound-icon-display">🔊</span>
+            </button>
+        </div>
+        </main>
+    </div>
+
+    <!-- VIEW: GAME (Restored Layout) -->
+    <div id="game-view" class="hidden">
+
+        <!-- Hybrid Header: Back Button + Original Layout -->
+        <header class="header">
+            <div class="logo-container">
+                <img src="logo.png" alt="Sudoku Familia" class="logo-img">
+                <button id="btn-back-home" class="icon-btn" style="margin-left: 8px;" title="Volver al Menú">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+                    </svg>
+                </button>
+            </div>
+            <div class="header-controls">
+                <!-- Difficulty Select -->
+                <select id="difficulty-select" class="difficulty-select" aria-label="Select Difficulty">
+                    <option value="easy">Fácil</option>
+                    <option value="medium">Medio</option>
+                    <option value="hard">Difícil</option>
+                </select>
+            </div>
+        </header>
+
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-label">Errores</span>
+                <span id="mistakes-count" class="status-value">0/3</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Tiempo</span>
+                <span id="timer" class="status-value">00:00</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Nivel</span>
+                <span id="level-display" class="status-value">Fácil</span>
+            </div>
         </div>
 
-        <!-- VIEW: GAME (Restored Layout) -->
-        <div id="game-view" class="hidden">
-
-            <!-- Hybrid Header: Back Button + Original Layout -->
-            <header class="header">
-                <div class="logo-container">
-                    <img src="logo.png" alt="Sudoku Familia" class="logo-img">
-                    <button id="btn-back-home" class="icon-btn" style="margin-left: 8px;" title="Volver al Menú">
-                        <svg viewBox="0 0 24 24" width="24" height="24">
-                            <path fill="currentColor"
-                                d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
-                        </svg>
-                    </button>
-                </div>
-                <div class="header-controls">
-                    <!-- Difficulty Select -->
-                    <select id="difficulty-select" class="difficulty-select" aria-label="Select Difficulty">
-                        <option value="easy">Fácil</option>
-                        <option value="medium">Medio</option>
-                        <option value="hard">Difícil</option>
-                    </select>
-                </div>
-            </header>
-
-
-            <!-- Status Bar -->
-            <div class="status-bar">
-                <div class="status-item">
-                    <span class="status-label">Errores</span>
-                    <span id="mistakes-count" class="status-value">0/3</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Tiempo</span>
-                    <span id="timer" class="status-value">00:00</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Nivel</span>
-                    <span id="level-display" class="status-value">Fácil</span>
-                </div>
+        <!-- Game Board -->
+        <div class="game-area">
+            <div id="sudoku-board" class="sudoku-board">
+                <!-- Cells generated by JS -->
             </div>
-
-            <!-- Game Board -->
-            <div class="game-area">
-                <div id="sudoku-board" class="sudoku-board">
-                    <!-- Cells generated by JS -->
-                </div>
-            </div>
-
-            <!-- Action Controls (Original Layout) -->
-            <div class="controls-area">
-                <button class="control-btn" id="btn-pause" title="Pausar">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="6" y="4" width="4" height="16"></rect>
-                        <rect x="14" y="4" width="4" height="16"></rect>
-                    </svg>
-                    <span>Pausa</span>
-                </button>
-                <button class="control-btn" id="btn-undo" title="Deshacer">
-                    <svg viewBox="0 0 24 24" width="24" height="24">
-                        <path fill="currentColor"
-                            d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
-                    </svg>
-                    <span>Deshacer</span>
-                </button>
-                <button class="control-btn" id="btn-erase" title="Borrar">
-                    <svg viewBox="0 0 24 24" width="24" height="24">
-                        <path fill="currentColor"
-                            d="M16.24 3.76L14.83 2.35 18 2.35 18 2.35 21.65 6 21.65 6 12 15.65 9.17 12.82 16.24 5.76C16.63 5.37 16.63 4.73 16.24 4.34L16.24 3.76zM7.76 14.24L10.59 17.07 4 23.66 4 23.66 4 20 7.76 16.24C7.37 16.63 7.37 17.27 7.76 17.66L7.76 18.24 7.76 14.24zM10.59 14.24L7.76 11.41 12 7.17 14.83 10 10.59 14.24z" />
-                    </svg>
-                    <span>Borrar</span>
-                </button>
-                <button class="control-btn" id="btn-notes" title="Modo Notas">
-                    <div class="toggle-indicator">OFF</div>
-                    <svg viewBox="0 0 24 24" width="24" height="24">
-                        <path fill="currentColor"
-                            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                    </svg>
-                    <span>Notas</span>
-                </button>
-                <button class="control-btn" id="btn-hint" title="Pista">
-                    <div class="hint-badge">+30</div>
-                    <svg viewBox="0 0 24 24" width="24" height="24">
-                        <path fill="currentColor"
-                            d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.93 12.37 7 11.25 7 10c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.25-.93 2.37-2.15 3.1z" />
-                    </svg>
-                    <span>Pista</span>
-                </button>
-            </div>
-
-            <!-- Numpad -->
-            <div class="numpad">
-                <button class="num-btn" data-num="1">1<span class="num-count">9</span></button>
-                <button class="num-btn" data-num="2">2<span class="num-count">9</span></button>
-                <button class="num-btn" data-num="3">3<span class="num-count">9</span></button>
-                <button class="num-btn" data-num="4">4<span class="num-count">9</span></button>
-                <button class="num-btn" data-num="5">5<span class="num-count">9</span></button>
-                <button class="num-btn" data-num="6">6<span class="num-count">9</span></button>
-                <button class="num-btn" data-num="7">7<span class="num-count">9</span></button>
-                <button class="num-btn" data-num="8">8<span class="num-count">9</span></button>
-                <button class="num-btn" data-num="9">9<span class="num-count">9</span></button>
-            </div>
-
-
-
-            <div id="game-footer" class="game-footer">
-                <button id="btn-new-game-big" class="cartoon-btn blue">
-                    NUEVA PARTIDA
-                </button>
-            </div>
-
         </div>
+
+        <!-- Action Controls (Original Layout) -->
+        <div class="controls-area">
+            <button class="control-btn" id="btn-pause" title="Pausar">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+                <span>Pausa</span>
+            </button>
+            <button class="control-btn" id="btn-undo" title="Deshacer">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path fill="currentColor"
+                        d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
+                </svg>
+                <span>Deshacer</span>
+            </button>
+            <button class="control-btn" id="btn-erase" title="Borrar">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path fill="currentColor"
+                        d="M16.24 3.76L14.83 2.35 18 2.35 18 2.35 21.65 6 21.65 6 12 15.65 9.17 12.82 16.24 5.76C16.63 5.37 16.63 4.73 16.24 4.34L16.24 3.76zM7.76 14.24L10.59 17.07 4 23.66 4 23.66 4 20 7.76 16.24C7.37 16.63 7.37 17.27 7.76 17.66L7.76 18.24 7.76 14.24zM10.59 14.24L7.76 11.41 12 7.17 14.83 10 10.59 14.24z" />
+                </svg>
+                <span>Borrar</span>
+            </button>
+            <button class="control-btn" id="btn-notes" title="Modo Notas">
+                <div class="toggle-indicator">OFF</div>
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path fill="currentColor"
+                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                </svg>
+                <span>Notas</span>
+            </button>
+            <button class="control-btn" id="btn-hint" title="Pista">
+                <div class="hint-badge">+30</div>
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path fill="currentColor"
+                        d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.93 12.37 7 11.25 7 10c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.25-.93 2.37-2.15 3.1z" />
+                </svg>
+                <span>Pista</span>
+            </button>
+        </div>
+
+        <!-- Numpad -->
+        <div class="numpad">
+            <button class="num-btn" data-num="1">1<span class="num-count">9</span></button>
+            <button class="num-btn" data-num="2">2<span class="num-count">9</span></button>
+            <button class="num-btn" data-num="3">3<span class="num-count">9</span></button>
+            <button class="num-btn" data-num="4">4<span class="num-count">9</span></button>
+            <button class="num-btn" data-num="5">5<span class="num-count">9</span></button>
+            <button class="num-btn" data-num="6">6<span class="num-count">9</span></button>
+            <button class="num-btn" data-num="7">7<span class="num-count">9</span></button>
+            <button class="num-btn" data-num="8">8<span class="num-count">9</span></button>
+            <button class="num-btn" data-num="9">9<span class="num-count">9</span></button>
+        </div>
+
+
+
+        <div id="game-footer" class="game-footer">
+            <button id="btn-new-game-big" class="cartoon-btn blue">
+                NUEVA PARTIDA
+            </button>
+        </div>
+
+    </div>
 
     </div>
 
@@ -383,6 +394,14 @@
                 <!-- Scores injected by JS -->
             </div>
             <button id="btn-close-leaderboard" class="btn-secondary">Cerrar</button>
+        </div>
+    </div>
+
+    <div id="adventure-modal" class="modal hidden">
+        <div class="modal-content adventure-content">
+            <span class="close-btn" id="close-adventure-modal">&times;</span>
+            <h2>MODO AVENTURA</h2>
+            <div id="adventure-grid" class="adventure-grid-container"></div>
         </div>
     </div>
 

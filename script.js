@@ -214,6 +214,12 @@ class SudokuGame {
 
             // Footer Elements
             btnNewGameBig: document.getElementById('btn-new-game-big'),
+
+            // Adventure Mode
+            btnAdventureMode: document.getElementById('btn-adventure-mode'),
+            adventureModal: document.getElementById('adventure-modal'),
+            closeAdventureModal: document.getElementById('close-adventure-modal'),
+            adventureGrid: document.getElementById('adventure-grid'),
         };
         this.setupEventListeners();
         this.loadTheme();
@@ -843,21 +849,42 @@ class SudokuGame {
         // New Game Big Button
         if (this.dom.btnNewGameBig) {
             this.dom.btnNewGameBig.addEventListener('click', () => {
+                // Confirm before new game if in middle of one?
+                // For now just start new game flow
                 Swal.fire({
                     title: '¿Nueva Partida?',
-                    text: "Se perderá el progreso actual.",
-                    icon: 'question',
+                    text: "Se perderá el progreso actual",
+                    icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Sí, empezar',
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#1cb0f6',
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, jugar',
+                    cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        this.startNewGame();
+                        this.startNewGame(this.difficulty || 'easy');
                     }
                 });
             });
         }
+
+        // Adventure Mode Listeners
+        if (this.dom.btnAdventureMode) {
+            this.dom.btnAdventureMode.addEventListener('click', () => {
+                this.dom.adventureModal.classList.remove('hidden');
+                this.renderAdventureGrid();
+            });
+        }
+        if (this.dom.closeAdventureModal) {
+            this.dom.closeAdventureModal.addEventListener('click', () => {
+                this.dom.adventureModal.classList.add('hidden');
+            });
+        }
+        window.addEventListener('click', (e) => {
+            if (e.target === this.dom.adventureModal) {
+                this.dom.adventureModal.classList.add('hidden');
+            }
+        });
     }
 
     toggleTheme() {
@@ -1670,17 +1697,19 @@ class SudokuGame {
         const seconds = this.timer;
         const date = new Date().toISOString();
 
+        // 1. Local Storage (Legacy/Offline)
         const localScores = JSON.parse(localStorage.getItem('sudokuResults')) || {};
         if (!localScores[this.difficulty]) localScores[this.difficulty] = [];
-
         const newScore = { name, timeStr, seconds, date };
         localScores[this.difficulty].push(newScore);
         localScores[this.difficulty].sort((a, b) => a.seconds - b.seconds);
         localScores[this.difficulty] = localScores[this.difficulty].slice(0, 100);
         localStorage.setItem('sudokuResults', JSON.stringify(localScores));
 
+        // 2. Firebase
         if (db) {
             try {
+                // Base data
                 const scoreData = {
                     name: name,
                     timeStr: timeStr,
@@ -1688,22 +1717,119 @@ class SudokuGame {
                     difficulty: this.difficulty,
                     date: date,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    weekId: this.getWeekId() // <--- NEW: Save Week ID
+                    weekId: this.getWeekId()
                 };
-
-                // If it's a daily challenge, add the ID
-                if (this.currentChallengeCode && this.currentChallengeCode.startsWith('DAILY-')) {
-                    scoreData.challengeId = this.currentChallengeCode;
-                }
 
                 if (auth && auth.currentUser) {
                     scoreData.uid = auth.currentUser.uid;
                 }
+
+                // CHECK ADVENTURE MODE
+                if (this.currentChallengeCode && this.currentChallengeCode.startsWith('ADV-LVL-')) {
+                    scoreData.challengeId = this.currentChallengeCode;
+
+                    if (auth && auth.currentUser) {
+                        // High Score Logic: Check if exists
+                        const snapshot = await db.collection("scores")
+                            .where("uid", "==", auth.currentUser.uid)
+                            .where("challengeId", "==", this.currentChallengeCode)
+                            .get();
+
+                        if (!snapshot.empty) {
+                            const doc = snapshot.docs[0];
+                            const oldBest = doc.data().seconds;
+                            if (seconds < oldBest) {
+                                // New Best Time! Update
+                                await doc.ref.update({
+                                    seconds: seconds,
+                                    timeStr: timeStr,
+                                    date: date,
+                                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                                console.log("Adventure Mode: New Personal Best Updated!");
+                            } else {
+                                console.log("Adventure Mode: Not a new best time.");
+                            }
+                        } else {
+                            // First time winning this level
+                            await db.collection("scores").add(scoreData);
+                            console.log("Adventure Mode: First clear saved!");
+                        }
+                    } else {
+                        // Guest mode adventure? Just save normally or maybe local only?
+                        // For now save normally to scores but won't be queryable by UID easily without login
+                        await db.collection("scores").add(scoreData);
+                    }
+                    return; // EXIT FUNCTION, handled adventure save
+                }
+
+                // Normal / Daily Logic
+                if (this.currentChallengeCode && this.currentChallengeCode.startsWith('DAILY-')) {
+                    scoreData.challengeId = this.currentChallengeCode;
+                }
+
                 await db.collection("scores").add(scoreData);
                 console.log("Score saved to Firebase");
             } catch (e) {
                 console.error("Error adding document: ", e);
             }
+        }
+    }
+
+    async renderAdventureGrid() {
+        if (!this.dom.adventureGrid) return;
+        this.dom.adventureGrid.innerHTML = '<div class="spinner"></div>';
+
+        const completedSet = new Set();
+        if (db && auth && auth.currentUser) {
+            try {
+                // Optimize: in a real app, maybe store "completedLevels" array in user profile
+                // For now, query scores for this user where challengeId starts with ADV
+                // Note: Firestore doesn't support "startsWith" in query easily without separate field or range
+                // We'll fetch all scores for user and filter client side or use range query if possible.
+                // Range query: challengeId >= 'ADV-LVL-' && challengeId < 'ADV-LVL-\uf8ff'
+                const snapshot = await db.collection("scores")
+                    .where("uid", "==", auth.currentUser.uid)
+                    .where("challengeId", ">=", "ADV-LVL-")
+                    .where("challengeId", "<=", "ADV-LVL-\uf8ff")
+                    .get();
+
+                snapshot.forEach(doc => {
+                    const cid = doc.data().challengeId;
+                    if (cid) completedSet.add(cid);
+                });
+            } catch (e) {
+                console.error("Error fetching adventure progress:", e);
+            }
+        }
+
+        this.dom.adventureGrid.innerHTML = '';
+        for (let i = 1; i <= 30; i++) {
+            const btn = document.createElement('button');
+            const levelId = `ADV-LVL-${i}`;
+
+            // Determine difficulty
+            let diffClass = 'adv-easy';
+            let diff = 'easy';
+            if (i > 10) { diffClass = 'adv-medium'; diff = 'medium'; }
+            if (i > 20) { diffClass = 'adv-hard'; diff = 'hard'; }
+
+            btn.className = `level-circle-btn ${diffClass}`;
+            btn.textContent = i;
+
+            if (completedSet.has(levelId)) {
+                btn.classList.add('completed');
+            }
+
+            btn.onclick = () => {
+                this.dom.adventureModal.classList.add('hidden');
+                // Set difficulty and start game with levelId as seed and challengeCode
+                this.difficulty = diff;
+                if (this.dom.difficultySelect) this.dom.difficultySelect.value = diff;
+                this.startNewGame(levelId, levelId);
+            };
+
+            this.dom.adventureGrid.appendChild(btn);
         }
     }
 
