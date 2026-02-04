@@ -1841,6 +1841,7 @@ class SudokuGame {
 
             this.dom.adventureGrid.appendChild(btn);
         }
+        this.updateAdventureProgress(); // Ensure ticks are applied
     }
 
     async updateAdventureProgress() {
