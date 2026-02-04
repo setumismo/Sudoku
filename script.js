@@ -1786,6 +1786,14 @@ class SudokuGame {
         }
     }
 
+    getAdventurePrefix() {
+        const d = new Date();
+        const year = d.getFullYear();
+        // Month is 0-indexed, so +1. Pad with 0.
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        return `ADV-${year}-${month}-`;
+    }
+
     async renderAdventureGrid() {
         if (!this.dom.adventureGrid) return;
         this.dom.adventureGrid.innerHTML = '<div class="spinner"></div>';
